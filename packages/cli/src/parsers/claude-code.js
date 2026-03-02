@@ -39,12 +39,30 @@ function resolveProject(session) {
 
 /**
  * Clean a raw project directory name from ccusage.
+ * Takes the last meaningful part of the path.
  */
 function cleanProjectDir(raw) {
   if (!raw || raw === 'unknown' || raw === 'Unknown Project') return 'unknown';
-  const slashIdx = raw.indexOf('/');
-  if (slashIdx !== -1) raw = raw.slice(0, slashIdx);
-  return raw;
+
+  // Split by common delimiters and take the last meaningful part
+  const parts = raw.split(/[\/\\-]+/);
+  // Filter out empty strings and common prefixes
+  const meaningful = parts.filter(p =>
+    p &&
+    p !== 'Users' &&
+    p !== 'ernal' &&
+    p !== 'Library' &&
+    p !== 'Mobile' &&
+    p !== 'Documents' &&
+    !p.startsWith('com-apple') &&
+    !p.match(/^\d+$/) // Remove numbers like "01"
+  );
+
+  if (meaningful.length === 0) return 'unknown';
+
+  // Return the last meaningful part, max 30 chars
+  const lastPart = meaningful[meaningful.length - 1];
+  return lastPart.length > 30 ? lastPart.slice(0, 30) : lastPart;
 }
 
 /**

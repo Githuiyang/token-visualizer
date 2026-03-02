@@ -85,7 +85,10 @@ function renderModelList(byModel) {
   const container = document.getElementById('model-list');
   if (!container) return;
 
-  const html = byModel.map(m => `
+  // Filter out models with 0 tokens
+  const filtered = byModel.filter(m => m.total_tokens > 0);
+
+  const html = filtered.map(m => `
     <div class="model-item">
       <div class="model-name">${m.displayName || m.model}</div>
       <div class="model-stats">
@@ -101,11 +104,14 @@ function renderModelList(byModel) {
 function renderPieChart(byModel) {
   const chart = echarts.init(document.getElementById('pie-chart'));
 
+  // Filter out models with 0 tokens
+  const filtered = (byModel || []).filter(m => m.total_tokens > 0);
+
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
       formatter: (params) => {
-        const m = byModel[params.dataIndex];
+        const m = filtered[params.dataIndex];
         return `${m.displayName || m.model}: ${formatCost(m.cost)} (${params.percent}%)`;
       }
     },
@@ -113,7 +119,7 @@ function renderPieChart(byModel) {
       type: 'pie',
       radius: ['40%', '65%'],
       center: ['50%', '55%'],
-      data: (byModel || []).map((m, i) => ({
+      data: filtered.map((m, i) => ({
         value: m.cost,
         name: m.displayName || m.model,
         itemStyle: {
@@ -201,9 +207,10 @@ function renderDailyBreakdown(byDayDetail) {
   const container = document.getElementById('daily-breakdown');
   if (!container) return;
 
-  // Group by date
+  // Filter out items with 0 tokens and group by date
+  const filtered = byDayDetail.filter(d => d.total_tokens > 0);
   const grouped = {};
-  byDayDetail.forEach(d => {
+  filtered.forEach(d => {
     if (!grouped[d.date]) {
       grouped[d.date] = [];
     }
@@ -240,11 +247,13 @@ function renderDailyBreakdown(byDayDetail) {
 async function init() {
   const stats = await loadStats();
 
-  // Update summary
+  // Update summary - use model count from non-zero models only
+  const nonZeroModels = (stats?.byModel || []).filter(m => m.total_tokens > 0);
+
   document.getElementById('total-tokens').textContent = formatTokens(stats?.total?.total_tokens);
   document.getElementById('total-cost').textContent = formatCost(stats?.total?.total_cost);
   document.getElementById('days-active').textContent = stats?.total?.days_active || 0;
-  document.getElementById('model-count').textContent = stats?.total?.model_count || 0;
+  document.getElementById('model-count').textContent = nonZeroModels.length || 0;
 
   // Render charts
   renderPieChart(stats?.byModel);
