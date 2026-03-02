@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Visualizer - Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>AI Token Usage</h1>
+      <div class="stats-summary">
+        <div class="stat">
+          <span class="label">Total Tokens</span>
+          <span class="value" id="total-tokens">-</span>
+        </div>
+        <div class="stat">
+          <span class="label">Total Cost</span>
+          <span class="value" id="total-cost">-</span>
+        </div>
+        <div class="stat">
+          <span class="label">Days Active</span>
+          <span class="value" id="days-active">-</span>
+        </div>
+        <div class="stat">
+          <span class="label">Models</span>
+          <span class="value" id="model-count">-</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="chart-section">
+        <h2>Cost by Model</h2>
+        <div id="pie-chart" class="chart"></div>
+      </section>
+
+      <section class="chart-section">
+        <h2>Daily Token Usage</h2>
+        <div id="line-chart" class="chart"></div>
+      </section>
+
+      <section class="chart-section full-width">
+        <h2>Activity Heatmap</h2>
+        <div id="heatmap" class="chart heatmap"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -36,9 +36,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Dashboard (will add EJS in next task)
+// Dashboard
 app.get('/dashboard', authMiddleware, (req, res) => {
-  res.json({ message: 'Dashboard coming soon' });
+  res.render('dashboard', { user: req.user });
 });
 
 // Start server
