@@ -1,46 +1,63 @@
 # Token Visualizer
 
-AI token usage visualization tool with GitHub-inspired theme.
+AI token usage visualization tool with web dashboard.
 
-## Features
+## Quick Start
 
-- Aggregates usage from Claude Code, OpenClaw, and more
-- Shows cost breakdown by model
-- Daily activity heatmap (GitHub-style)
-- Beautiful shareable images
-
-## Installation
+### 1. Install
 
 ```bash
-cd ~/Projects/token-visualizer
 npm install
 ```
 
-## Usage
+### 2. Start the server
 
 ```bash
-# Generate visualization
+npm run dev
+```
+
+Server runs on http://localhost:3000
+
+### 3. Upload data
+
+```bash
+npm run push
+```
+
+First run will auto-configure and generate API key.
+
+### 4. View dashboard
+
+Open http://localhost:3000/dashboard in your browser.
+
+## Commands
+
+```bash
+# Upload data to server
+npm run push
+
+# Generate local visualization
 npm run generate
 
-# Or via CLI
-node bin/token-viz.js generate -o usage.png
-
-# Specify date range
-node bin/token-viz.js generate --from 2026-01-01 --to 2026-03-01
-
-# Show stats only
+# Show statistics
 node bin/token-viz.js stats
+
+# Manage configuration
+node bin/token-viz.js config --show
+node bin/token-viz.js config --set-server <url>
+node bin/token-viz.js config --set-key <key>
 ```
+
+## Packages
+
+- **@token-viz/cli** - Command-line tool for parsing and uploading usage data
+- **@token-viz/server** - Web server with dashboard and API
 
 ## Data Sources
 
 - **Claude Code**: `~/.claude/code/projects/`
 - **OpenClaw**: `~/.openclaw/agents/*/sessions/*.jsonl`
 
-## Pricing
+## Environment
 
-Model pricing is configured in `src/config/models.js`.
-
-## Theme
-
-GitHub-inspired colors from `src/config/theme.js`.
+- `PORT` - Server port (default: 3000)
