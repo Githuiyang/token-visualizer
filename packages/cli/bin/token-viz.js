@@ -7,6 +7,9 @@ import chalk from 'chalk';
 import { parseAll } from '../src/parsers/index.js';
 import { calculateStats } from '../src/calculator.js';
 import { exportVisualization } from '../src/export.js';
+import {
+  loadConfig, saveConfig, getApiKey, setApiKey, getServerUrl, isConfigured
+} from '../src/config.js';
 
 const program = new Command();
 
@@ -134,6 +137,123 @@ program
       const percent = ((m.cost / stats.totalCost) * 100).toFixed(1);
       console.log(`  ${i + 1}. ${chalk.cyan(m.displayName.padEnd(25))} ${formatTokens(m.totalTokens).padStart(10)} · $${m.cost.toFixed(4).padStart(8)} (${percent}%)`);
     });
+  });
+
+// Config command
+program
+  .command('config')
+  .description('Manage configuration')
+  .option('--set-key <key>', 'Set API key')
+  .option('--set-server <url>', 'Set server URL')
+  .option('--show', 'Show current configuration')
+  .action((options) => {
+    const config = loadConfig();
+
+    if (options.setKey) {
+      setApiKey(options.setKey, options.setServer || config.serverUrl);
+      console.log(chalk.green('✓ API key saved'));
+    }
+
+    if (options.setServer) {
+      config.serverUrl = options.setServer;
+      saveConfig(config);
+      console.log(chalk.green('✓ Server URL saved'));
+    }
+
+    if (options.show || (!options.setKey && !options.setServer)) {
+      console.log(chalk.bold('Current configuration:'));
+      console.log(`  Server: ${chalk.cyan(config.serverUrl || 'not set')}`);
+      console.log(`  API Key: ${chalk.cyan(config.apiKey ? '***' + config.apiKey.slice(-4) : 'not set')}`);
+    }
+  });
+
+// Push command
+program
+  .command('push')
+  .description('Upload usage data to server')
+  .option('-s, --server <url>', 'Server URL')
+  .option('--from <date>', 'Start date (YYYY-MM-DD)')
+  .option('--to <date>', 'End date (YYYY-MM-DD)')
+  .action(async (options) => {
+    console.log(chalk.cyan('Token Visualizer - Uploading data...\n'));
+
+    // Check configuration
+    let serverUrl = options.server || getServerUrl();
+    let apiKey = getApiKey();
+
+    // Interactive setup if not configured
+    if (!apiKey) {
+      console.log(chalk.yellow('First-time setup needed!\n'));
+
+      // Prompt for server URL
+      const defaultServer = 'http://localhost:3000';
+      console.log(`Server URL [${defaultServer}]: ${serverUrl}`);
+      console.log(chalk.dim(`Press Enter to use ${defaultServer}, or run: token-viz config --set-server <url>\n`));
+
+      // Try to generate API key from server
+      console.log(chalk.dim('Generating API key from server...'));
+      try {
+        const response = await fetch(`${serverUrl}/api/key`, { method: 'POST' });
+        if (response.ok) {
+          const data = await response.json();
+          apiKey = data.apiKey;
+          setApiKey(apiKey, serverUrl);
+          console.log(chalk.green(`✓ API key generated and saved\n`));
+        } else {
+          throw new Error('Failed to generate API key');
+        }
+      } catch (error) {
+        console.log(chalk.red(`✓ Could not connect to server at ${serverUrl}`));
+        console.log(chalk.dim('\nPlease make sure the server is running:'));
+        console.log(chalk.dim('  npm run dev\n'));
+        console.log(chalk.dim('Or manually set your API key:'));
+        console.log(chalk.dim(`  token-viz config --set-key <your-key> --set-server ${serverUrl}\n`));
+        process.exit(1);
+      }
+    }
+
+    try {
+      // Parse data
+      const buckets = await parseAll();
+
+      if (buckets.length === 0) {
+        console.warn(chalk.yellow('No usage data found.'));
+        return;
+      }
+
+      // Filter by date
+      let filteredBuckets = buckets;
+      if (options.from || options.to) {
+        const fromDate = options.from ? new Date(options.from) : new Date(-8640000000000000);
+        const toDate = options.to ? new Date(options.to) : new Date();
+        filteredBuckets = buckets.filter(b => {
+          const date = new Date(b.bucketStart);
+          return date >= fromDate && date <= toDate;
+        });
+      }
+
+      // Upload to server
+      const response = await fetch(`${serverUrl}/api/push`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: JSON.stringify({ records: filteredBuckets }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      console.log(chalk.green(`✓ ${result.message}`));
+      console.log(chalk.dim(`\nView your dashboard: ${serverUrl}/dashboard\n`));
+    } catch (error) {
+      console.error(chalk.red(`Error: ${error.message}`));
+      process.exit(1);
+    }
   });
 
 // Helper function
