@@ -92,7 +92,6 @@ function renderModelList(byModel) {
         <span>${formatTokens(m.total_tokens)}</span>
         <span>${formatCost(m.cost)}</span>
       </div>
-      <div class="model-price">${formatPrice(m.pricing)}</div>
     </div>
   `).join('');
 
@@ -166,6 +165,8 @@ function renderLineChart(byDay) {
 
 function renderHeatmap(byDay) {
   const container = document.getElementById('heatmap');
+  container.innerHTML = ''; // Clear previous content
+
   const maxTokens = Math.max(...(byDay || []).map(d => d.tokens), 1);
 
   const grid = document.createElement('div');

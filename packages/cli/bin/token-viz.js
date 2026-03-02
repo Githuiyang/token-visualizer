@@ -5,6 +5,9 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { exec } from 'child_process';
+import { unlinkSync, existsSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import { parseAll } from '../src/parsers/index.js';
 import { calculateStats } from '../src/calculator.js';
 import { exportVisualization } from '../src/export.js';
@@ -175,8 +178,30 @@ program
   .option('-s, --server <url>', 'Server URL')
   .option('--from <date>', 'Start date (YYYY-MM-DD)')
   .option('--to <date>', 'End date (YYYY-MM-DD)')
+  .option('--reindex', 'Clear state and reindex all historical data')
   .action(async (options) => {
     console.log(chalk.cyan('Token Visualizer - Uploading data...\n'));
+
+    // Handle reindex - clear state files
+    if (options.reindex) {
+      const stateDir = join(homedir(), '.token-visualizer');
+      const stateFiles = ['claude-code-state.json', 'openclaw-state.json'];
+      let cleared = 0;
+      for (const file of stateFiles) {
+        const filePath = join(stateDir, file);
+        if (existsSync(filePath)) {
+          try {
+            unlinkSync(filePath);
+            cleared++;
+          } catch (e) {
+            console.log(chalk.dim(`  Could not clear ${file}`));
+          }
+        }
+      }
+      if (cleared > 0) {
+        console.log(chalk.yellow(`✓ Cleared ${cleared} state file(s) - reindexing all data\n`));
+      }
+    }
 
     // Check configuration
     let serverUrl = options.server || getServerUrl();
