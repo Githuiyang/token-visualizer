@@ -1,23 +1,12 @@
 {
-  "name": "token-visualizer",
-  "version": "0.1.0",
-  "description": "AI token usage visualization tool with GitHub-style theme",
-  "type": "module",
-  "main": "src/index.js",
-  "bin": {
-    "token-viz": "./bin/token-viz.js"
-  },
+  "name": "token-visualizer-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "generate": "node bin/token-viz.js generate"
-  },
-  "keywords": ["ai", "tokens", "visualization", "claude", "openai"],
-  "author": "huiyang",
-  "license": "MIT",
-  "dependencies": {
-    "ccusage": "^18.0.8",
-    "chalk": "^5.3.0",
-    "commander": "^12.1.0",
-    "echarts": "^5.6.0",
-    "sharp": "^0.33.5"
+    "dev": "npm run dev --workspace=packages/server",
+    "push": "npm run push --workspace=packages/cli"
   }
 }
