@@ -2,6 +2,13 @@
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   api_key TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE,
+  email_hash TEXT,
+  nickname TEXT,
+  organization TEXT,
+  show_email BOOLEAN DEFAULT 0,
+  show_nickname BOOLEAN DEFAULT 1,
+  show_on_leaderboard BOOLEAN DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

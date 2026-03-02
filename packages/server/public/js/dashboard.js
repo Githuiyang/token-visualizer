@@ -8,21 +8,21 @@
     const urlParams = new URLSearchParams(window.location.search);
     const urlKey = urlParams.get('key');
     if (urlKey) {
-      localStorage.setItem('tokenVizApiKey', urlKey);
+      localStorage.setItem('tokenviz_api_key', urlKey);
       return urlKey;
     }
-    return localStorage.getItem('tokenVizApiKey');
+    return localStorage.getItem('tokenviz_api_key');
   }
 
   // Save API key
   function saveApiKey(key) {
-    localStorage.setItem('tokenVizApiKey', key);
+    localStorage.setItem('tokenviz_api_key', key);
     API_KEY = key;
   }
 
   // Clear API key
   function clearApiKey() {
-    localStorage.removeItem('tokenVizApiKey');
+    localStorage.removeItem('tokenviz_api_key');
     API_KEY = null;
   }
 
@@ -34,12 +34,12 @@
     const modal = document.createElement('div');
     modal.id = 'api-key-modal';
     modal.innerHTML = `
-      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:9999;">
-        <div style="background:#161b22;padding:32px;border-radius:12px;border:1px solid #30363d;min-width:320px;">
-          <h2 style="margin:0 0 8px 0;color:#c9d1d9;">API Key Required</h2>
-          <p style="margin:0 0 16px 0;color:#8b949e;font-size:14px;">${message}</p>
-          <input type="text" id="api-key-input" placeholder="tv_xxxxx..." style="width:100%;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:14px;box-sizing:border-box;">
-          <button id="api-key-submit" style="margin-top:16px;width:100%;padding:12px;background:#238636;border:none;border-radius:6px;color:white;font-size:14px;font-weight:600;cursor:pointer;">Submit</button>
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
+        <div style="background:#0a0a0a;padding:32px;border:1px solid #3a3a3a;min-width:320px;">
+          <h2 style="margin:0 0 8px 0;color:#f5f5f5;font-family:-apple-system,sans-serif;font-weight:500;">API Key Required</h2>
+          <p style="margin:0 0 16px 0;color:#6a6a6a;font-size:14px;">${message}</p>
+          <input type="text" id="api-key-input" placeholder="tv_xxxxx..." style="width:100%;padding:12px;background:#111;border:1px solid #3a3a3a;color:#f5f5f5;font-size:14px;box-sizing:border-box;font-family:-apple-system,sans-serif;">
+          <button id="api-key-submit" style="margin-top:16px;width:100%;padding:12px;background:#d4a056;border:none;color:#0a0a0a;font-size:14px;font-weight:500;cursor:pointer;font-family:-apple-system,sans-serif;">Submit</button>
         </div>
       </div>
     `;
@@ -68,8 +68,8 @@
   function showError(message) {
     document.body.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;">
-        <p style="color:#f85149;font-size:16px;">${message}</p>
-        <button onclick="location.reload()" style="padding:12px 24px;background:#238636;border:none;border-radius:6px;color:white;cursor:pointer;font-size:14px;">Retry</button>
+        <p style="color:#f5f5f5;font-size:16px;">${message}</p>
+        <button onclick="location.reload()" style="padding:12px 24px;background:#d4a056;border:none;color:#0a0a0a;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif;">Retry</button>
       </div>
     `;
   }
@@ -129,7 +129,7 @@
     const filtered = byModel.filter(m => m.total_tokens > 0);
 
     if (filtered.length === 0) {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;">No data</div>';
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6a6a6a;">No data</div>';
       return;
     }
 
@@ -151,7 +151,7 @@
           value: m.cost,
           name: m.displayName || m.model,
           itemStyle: {
-            color: ['#238636', '#58a6ff', '#bc8cff', '#d29922', '#f85149'][i % 5]
+            color: ['#d4a056', '#c4924a', '#b48444', '#a4763e', '#946838'][i % 5]
           }
         })),
         label: { show: false }
@@ -166,7 +166,7 @@
     if (!container) return;
 
     if (!byDay || byDay.length === 0) {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;">No data</div>';
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6a6a6a;">No data</div>';
       return;
     }
 
@@ -178,14 +178,14 @@
       xAxis: {
         type: 'category',
         data: byDay.map(d => d.date),
-        axisLine: { lineStyle: { color: '#30363d' } },
-        axisLabel: { color: '#8b949e' }
+        axisLine: { lineStyle: { color: '#3a3a3a' } },
+        axisLabel: { color: '#6a6a6a' }
       },
       yAxis: {
         type: 'value',
-        axisLine: { lineStyle: { color: '#30363d' } },
-        axisLabel: { color: '#8b949e', formatter: formatTokens },
-        splitLine: { lineStyle: { color: '#30363d', type: 'dashed' } }
+        axisLine: { lineStyle: { color: '#3a3a3a' } },
+        axisLabel: { color: '#6a6a6a', formatter: formatTokens },
+        splitLine: { lineStyle: { color: '#2a2a2a', type: 'dashed' } }
       },
       series: [{
         type: 'line',
@@ -193,12 +193,12 @@
         smooth: true,
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(35, 134, 54, 0.3)' },
-            { offset: 1, color: 'rgba(35, 134, 54, 0)' }
+            { offset: 0, color: 'rgba(212, 160, 86, 0.3)' },
+            { offset: 1, color: 'rgba(212, 160, 86, 0)' }
           ])
         },
-        lineStyle: { color: '#238636' },
-        itemStyle: { color: '#238636' }
+        lineStyle: { color: '#d4a056' },
+        itemStyle: { color: '#d4a056' }
       }]
     };
 
@@ -212,7 +212,7 @@
     container.innerHTML = '';
 
     if (!byDay || byDay.length === 0) {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;">No data</div>';
+      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6a6a6a;">No data</div>';
       return;
     }
 
@@ -220,7 +220,7 @@
     const grid = document.createElement('div');
     grid.style.cssText = 'display: flex; gap: 3px; overflow-x: auto; padding: 10px 0;';
 
-    const colors = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+    const colors = ['#1a1a1a', '#3d2e1a', '#5a4528', '#8a6a3d', '#d4a056'];
 
     byDay.forEach(day => {
       const cell = document.createElement('div');
@@ -231,9 +231,12 @@
       if (normalized > 0.5) level = 3;
       if (normalized > 0.75) level = 4;
 
+      const borderColor = level === 0 ? '#2a2a2a' : 'transparent';
+
       cell.style.cssText = `
         width: 14px; height: 14px; border-radius: 2px;
         background: ${colors[level]};
+        border: 1px solid ${borderColor};
         flex-shrink: 0;
         cursor: pointer;
       `;
@@ -257,7 +260,7 @@
     });
 
     if (Object.keys(grouped).length === 0) {
-      container.innerHTML = '<div style="color:#8b949e;">No data</div>';
+      container.innerHTML = '<div style="color:#6a6a6a;">No data</div>';
       return;
     }
 

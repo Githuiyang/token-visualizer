@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Visualizer</title>
+  <link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div class="logo">
+        <h1>Token Visualizer</h1>
+      </div>
+      <p class="tagline">Track your AI token usage and costs</p>
+      <p class="sign-in-prompt">Already have an account? <button class="sign-in-btn" id="sign-in-btn">Sign in</button></p>
+    </header>
+
+    <main>
+      <section class="register-section" id="register-form">
+        <h2>Get Started</h2>
+        <p class="subtitle">Enter your details to generate your API key</p>
+
+        <form id="registration-form">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              required
+              autocomplete="email"
+            >
+            <span class="help-text">Your API key will be generated from your email</span>
+          </div>
+
+          <div class="form-group">
+            <label for="nickname">Nickname</label>
+            <input
+              type="text"
+              id="nickname"
+              name="nickname"
+              placeholder="Your display name"
+              required
+              maxlength="30"
+              autocomplete="nickname"
+            >
+            <span class="help-text">Shown on leaderboards (max 30 characters)</span>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="show-on-leaderboard" name="show_on_leaderboard">
+              <span>Appear on public leaderboard</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="submit-btn">
+            <span class="btn-text">Generate API Key</span>
+            <span class="spinner"></span>
+          </button>
+
+          <div class="error-message" id="error-message"></div>
+        </form>
+      </section>
+
+      <section class="success-section" id="success-section" style="display: none;">
+        <div class="success-icon">✓</div>
+        <h2>Your API Key is Ready</h2>
+
+        <div class="api-key-display">
+          <label>API Key</label>
+          <div class="key-container">
+            <code id="api-key"></code>
+            <button class="btn-copy" id="copy-key-btn">Copy</button>
+          </div>
+        </div>
+
+        <div class="setup-command">
+          <label>Terminal Command</label>
+          <div class="command-container">
+            <pre id="setup-command">token-viz config --set-key YOUR_KEY</pre>
+            <button class="btn-copy-command" id="copy-command-btn">Copy</button>
+          </div>
+        </div>
+
+        <div class="next-steps">
+          <h3>Next Steps</h3>
+          <ol>
+            <li>Copy the command above</li>
+            <li>Run it in your terminal</li>
+            <li>Upload your data: <code>token-viz push</code></li>
+            <li>View your dashboard: <code>token-viz dash</code></li>
+          </ol>
+        </div>
+
+        <div class="action-buttons">
+          <a href="/dashboard" class="btn btn-secondary">Go to Dashboard</a>
+          <a href="/leaderboard" class="btn btn-outline">Leaderboard</a>
+        </div>
+      </section>
+
+      <section class="features-section">
+        <h2>Features</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">—</div>
+            <h3>Visualize</h3>
+            <p>Track your token consumption over time with clean charts</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">$</div>
+            <h3>Costs</h3>
+            <p>Monitor spending across different AI models and projects</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">≋</div>
+            <h3>Compare</h3>
+            <p>Optional leaderboard to see how you rank among developers</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Token Visualizer</p>
+    </footer>
+  </div>
+
+  <!-- Sign In Modal -->
+  <div class="modal-overlay" id="signin-modal" style="display: none;">
+    <div class="modal-signin">
+      <button class="modal-close" id="signin-close">×</button>
+      <h2>Sign In</h2>
+      <p class="subtitle">Enter your API key</p>
+      <form id="signin-form">
+        <div class="form-group">
+          <label for="signin-api-key">API Key</label>
+          <input
+            type="text"
+            id="signin-api-key"
+            placeholder="tv_xxxxx..."
+            required
+          >
+        </div>
+        <button type="submit" class="btn btn-primary" id="signin-submit">
+          <span class="btn-text">Sign In</span>
+          <span class="spinner"></span>
+        </button>
+        <div class="error-message" id="signin-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/register.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
-import { getUserByApiKey } from '../db/index.js';
+import crypto from 'node:crypto';
+import { getUserByApiKey, generateApiKeyFromEmail, generateEmailHash, getUserByEmailHash } from '../db/index.js';
 
 export function authMiddleware(req, res, next) {
   const apiKey = req.headers['x-api-key'];
@@ -25,3 +26,5 @@ export function generateApiKey() {
   }
   return key;
 }
+
+export { generateApiKeyFromEmail, generateEmailHash, getUserByEmailHash };

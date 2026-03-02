@@ -3,30 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Token Visualizer - Dashboard</title>
+  <title>Dashboard — Token Visualizer</title>
   <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/profile.css">
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      Token Visualizer
+    </div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/leaderboard">Leaderboard</a>
+      <button class="nav-btn" id="settings-btn">Settings</button>
+    </div>
+  </nav>
+
+  <!-- User Rank Banner -->
+  <div class="rank-banner" id="rank-banner" style="display: none;">
+    <div class="rank-info">
+      <span class="rank-label">Your Ranking</span>
+      <span class="rank-divider">—</span>
+      <span class="rank-number" id="user-rank">#-</span>
+      <span class="rank-divider">—</span>
+      <span class="rank-tokens" id="rank-tokens">0 tokens</span>
+    </div>
+    <a href="/leaderboard" class="rank-link">View Leaderboard →</a>
+  </div>
+
   <div class="container">
     <header>
-      <h1>AI Token Usage</h1>
+      <h1>Usage Dashboard</h1>
       <div class="stats-summary">
-        <div class="stat">
-          <span class="label">Total Tokens</span>
-          <span class="value" id="total-tokens">-</span>
+        <div class="stat stat-with-share">
+          <div class="stat-content">
+            <span class="label">Total Tokens</span>
+            <span class="value" id="total-tokens">—</span>
+          </div>
+          <button class="share-btn" id="share-btn" title="Share">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <path d="M16 6l-4-4-4 4"/>
+              <path d="M12 2v8"/>
+            </svg>
+          </button>
         </div>
         <div class="stat">
           <span class="label">Total Cost</span>
-          <span class="value" id="total-cost">-</span>
+          <span class="value" id="total-cost">—</span>
         </div>
         <div class="stat">
           <span class="label">Days Active</span>
-          <span class="value" id="days-active">-</span>
+          <span class="value" id="days-active">—</span>
         </div>
         <div class="stat">
           <span class="label">Models</span>
-          <span class="value" id="model-count">-</span>
+          <span class="value" id="model-count">—</span>
         </div>
       </div>
     </header>
@@ -55,6 +89,85 @@
     </main>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Profile Settings</h2>
+        <button class="modal-close" id="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="profile-form">
+          <div class="form-group">
+            <label for="profile-nickname">Nickname</label>
+            <input type="text" id="profile-nickname" maxlength="30" placeholder="Your display name">
+            <span class="help-text">Shown on leaderboards (max 30 characters)</span>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-api-key">API Key</label>
+            <div class="api-key-display">
+              <code id="profile-api-key">tv_***</code>
+              <button type="button" class="btn-copy" id="copy-api-key">Copy</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Privacy</h3>
+            <p class="section-help">Control what information is visible to others on the leaderboard</p>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="show-nickname">
+                <span>Show nickname on leaderboard</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="show-email">
+                <span>Show email on leaderboard</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="show-on-leaderboard">
+                <span>Appear on public leaderboard</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="modal-cancel">Cancel</button>
+            <button type="submit" class="btn-primary" id="modal-save">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay" id="share-modal" style="display: none;">
+    <div class="share-modal">
+      <button class="modal-close" id="share-close">×</button>
+      <h2>Share Stats</h2>
+      <div class="share-preview" id="share-preview">
+        <canvas id="share-canvas"></canvas>
+      </div>
+      <div class="share-tabs">
+        <button class="share-tab active" data-period="week">7 Days</button>
+        <button class="share-tab" data-period="month">30 Days</button>
+        <button class="share-tab" data-period="all">All Time</button>
+      </div>
+      <div class="share-actions">
+        <button class="btn-download" id="download-share">Download Image</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/dashboard.js"></script>
+  <script src="/js/profile.js"></script>
+  <script src="/js/share.js"></script>
 </body>
 </html>
