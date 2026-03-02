@@ -293,10 +293,43 @@ function formatTokens(tokens) {
 program
   .command('dash')
   .description('Open dashboard in browser')
-  .action(() => {
-    const config = loadConfig();
-    const key = config.apiKey;
+  .action(async () => {
+    let config = loadConfig();
+    let key = config.apiKey;
     const url = config.serverUrl || 'http://localhost:3000';
+
+    // Test if key is valid, if not, get a new one
+    if (key) {
+      try {
+        const testResponse = await fetch(`${url}/api/stats`, {
+          headers: { 'X-API-Key': key }
+        });
+        if (!testResponse.ok) {
+          console.log(chalk.dim('API key invalid, generating new one...'));
+          key = null;
+        }
+      } catch (e) {
+        console.log(chalk.dim('Could not verify API key, generating new one...'));
+        key = null;
+      }
+    }
+
+    // Generate new key if needed
+    if (!key) {
+      try {
+        const response = await fetch(`${url}/api/key`, { method: 'POST' });
+        if (response.ok) {
+          const data = await response.json();
+          key = data.apiKey;
+          setApiKey(key, url);
+          console.log(chalk.green('✓ New API key generated and saved'));
+        }
+      } catch (e) {
+        console.error(chalk.red('Could not generate API key. Make sure server is running.'));
+        process.exit(1);
+      }
+    }
+
     const dashboardUrl = `${url}/dashboard?key=${key}`;
     exec(`open "${dashboardUrl}"`);
     console.log(chalk.green(`Opening dashboard: ${dashboardUrl}`));
