@@ -89,9 +89,37 @@ main {
 }
 
 .chart.heatmap {
-  height: 200px;
+  height: 160px;
+  min-height: 160px;
   overflow-x: auto;
   overflow-y: hidden;
+  padding: 10px 0;
+}
+
+/* Ensure heatmap grid container can scroll */
+#heatmap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #30363d #161b22;
+}
+
+#heatmap::-webkit-scrollbar {
+  height: 8px;
+}
+
+#heatmap::-webkit-scrollbar-track {
+  background: #161b22;
+  border-radius: 4px;
+}
+
+#heatmap::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+#heatmap::-webkit-scrollbar-thumb:hover {
+  background: #8b949e;
 }
 
 /* Model List */
