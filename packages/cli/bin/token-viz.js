@@ -4,6 +4,7 @@
  */
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { exec } from 'child_process';
 import { parseAll } from '../src/parsers/index.js';
 import { calculateStats } from '../src/calculator.js';
 import { exportVisualization } from '../src/export.js';
@@ -262,5 +263,18 @@ function formatTokens(tokens) {
   if (tokens >= 1_000) return `${(tokens / 1_000).toFixed(1)}K`;
   return tokens.toString();
 }
+
+// Dash command - open dashboard in browser
+program
+  .command('dash')
+  .description('Open dashboard in browser')
+  .action(() => {
+    const config = loadConfig();
+    const key = config.apiKey;
+    const url = config.serverUrl || 'http://localhost:3000';
+    const dashboardUrl = `${url}/dashboard?key=${key}`;
+    exec(`open "${dashboardUrl}"`);
+    console.log(chalk.green(`Opening dashboard: ${dashboardUrl}`));
+  });
 
 program.parse();

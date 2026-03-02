@@ -36,9 +36,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Dashboard
-app.get('/dashboard', authMiddleware, (req, res) => {
-  res.render('dashboard', { user: req.user });
+// Dashboard - no auth required, handled by frontend
+app.get('/dashboard', (req, res) => {
+  res.render('dashboard');
 });
 
 // Start server

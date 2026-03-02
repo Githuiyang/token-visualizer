@@ -110,10 +110,30 @@ export function getUserStats(userId) {
     ORDER BY date ASC
   `);
 
+  // Detailed daily breakdown by model and source
+  const byDayDetailStmt = db.prepare(`
+    SELECT
+      DATE(bucket_start) as date,
+      model,
+      source,
+      project,
+      SUM(input_tokens) as input_tokens,
+      SUM(output_tokens) as output_tokens,
+      SUM(cached_tokens) as cached_tokens,
+      SUM(input_tokens + output_tokens + cached_tokens) as total_tokens,
+      SUM(cost) as cost,
+      COUNT(*) as requests
+    FROM usage_records
+    WHERE user_id = ?
+    GROUP BY DATE(bucket_start), model, source
+    ORDER BY date DESC, cost DESC
+  `);
+
   return {
     total: totalStmt.get(userId),
     byModel: byModelStmt.all(userId),
     byDay: byDayStmt.all(userId),
+    byDayDetail: byDayDetailStmt.all(userId),
   };
 }
 
