@@ -377,9 +377,14 @@ export function getOrganizationLeaderboard(organization, sortBy = 'totalTokens',
   if (!organization) return [];
 
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
-  const periodFilter = period === 'all' ? '' :
-    period === 'week' ? `AND DATE(ur.bucket_start) >= DATE('now', '-7 days')` :
-    `AND DATE(ur.bucket_start) >= DATE('now', '-30 days')`;
+
+  // Build WHERE clause for period filtering
+  let periodWhere = '';
+  if (period === 'week') {
+    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-7 days')`;
+  } else if (period === 'month') {
+    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-30 days')`;
+  }
 
   const stmt = db.prepare(`
     SELECT
@@ -392,8 +397,8 @@ export function getOrganizationLeaderboard(organization, sortBy = 'totalTokens',
       COALESCE(SUM(ur.cost), 0) as total_cost,
       COUNT(DISTINCT DATE(ur.bucket_start)) as days_active
     FROM users u
-    LEFT JOIN usage_records ur ON u.id = ur.user_id ${periodFilter.replace('AND', 'WHERE')}
-    WHERE u.organization = ?
+    LEFT JOIN usage_records ur ON u.id = ur.user_id
+    WHERE u.organization = ? ${periodWhere}
     GROUP BY u.id
     ORDER BY ${sortColumn} DESC
   `);
