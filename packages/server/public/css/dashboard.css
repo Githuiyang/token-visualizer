@@ -236,13 +236,33 @@ main {
 }
 
 .chart.heatmap {
-  height: 140px;
-  min-height: 140px;
+  height: 160px;
+  min-height: 160px;
 }
 
 #heatmap {
   overflow-x: auto;
   overflow-y: hidden;
+  padding: 8px 0;
+}
+
+/* Custom scrollbar for heatmap */
+#heatmap::-webkit-scrollbar {
+  height: 6px;
+}
+
+#heatmap::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+#heatmap::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+#heatmap::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
 }
 
 /* Model List */
@@ -267,6 +287,25 @@ main {
 
 .model-name {
   font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.model-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.model-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.model-cost {
+  font-weight: 500;
+  color: var(--accent);
   font-size: 0.875rem;
 }
 

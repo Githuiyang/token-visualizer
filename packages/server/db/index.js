@@ -290,9 +290,14 @@ export function getLeaderboard(sortBy = 'totalTokens', limit = 100, period = 'al
   const db = getDb();
 
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
-  const periodFilter = period === 'all' ? '' :
-    period === 'week' ? `AND DATE(ur.bucket_start) >= DATE('now', '-7 days')` :
-    `AND DATE(ur.bucket_start) >= DATE('now', '-30 days')`;
+
+  // Build WHERE clause for period filtering
+  let periodWhere = '';
+  if (period === 'week') {
+    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-7 days')`;
+  } else if (period === 'month') {
+    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-30 days')`;
+  }
 
   const stmt = db.prepare(`
     SELECT
@@ -305,8 +310,8 @@ export function getLeaderboard(sortBy = 'totalTokens', limit = 100, period = 'al
       COALESCE(SUM(ur.cost), 0) as total_cost,
       COUNT(DISTINCT DATE(ur.bucket_start)) as days_active
     FROM users u
-    LEFT JOIN usage_records ur ON u.id = ur.user_id ${periodFilter.replace('AND', 'WHERE')}
-    WHERE u.show_on_leaderboard = 1
+    LEFT JOIN usage_records ur ON u.id = ur.user_id
+    WHERE u.show_on_leaderboard = 1 ${periodWhere}
     GROUP BY u.id
     ORDER BY ${sortColumn} DESC
     LIMIT ?
@@ -449,4 +454,40 @@ export function getUserRankInOrganization(userId, organization, sortBy = 'totalT
     totalTokens: userStats.total_tokens,
     totalCost: userStats.total_cost
   };
+}
+
+// Get leaderboard of organizations (aggregated by organization name)
+export function getOrganizationsLeaderboard(sortBy = 'totalTokens', limit = 100, period = 'all') {
+  const db = getDb();
+
+  const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
+  const periodFilter = period === 'all' ? '' :
+    period === 'week' ? `AND DATE(ur.bucket_start) >= DATE('now', '-7 days')` :
+    `AND DATE(ur.bucket_start) >= DATE('now', '-30 days')`;
+
+  const stmt = db.prepare(`
+    SELECT
+      u.organization,
+      COALESCE(SUM(ur.input_tokens + ur.output_tokens + ur.cached_tokens), 0) as total_tokens,
+      COALESCE(SUM(ur.cost), 0) as total_cost,
+      COUNT(DISTINCT u.id) as member_count,
+      COUNT(DISTINCT DATE(ur.bucket_start)) as days_active
+    FROM users u
+    LEFT JOIN usage_records ur ON u.id = ur.user_id ${periodFilter.replace('AND', 'WHERE')}
+    WHERE u.organization IS NOT NULL AND u.organization != ''
+    GROUP BY u.organization
+    ORDER BY ${sortColumn} DESC
+    LIMIT ?
+  `);
+
+  const rows = stmt.all(limit);
+
+  return rows.map((row, index) => ({
+    rank: index + 1,
+    organization: row.organization,
+    memberCount: row.member_count,
+    totalTokens: row.total_tokens,
+    totalCost: row.total_cost,
+    daysActive: row.days_active
+  }));
 }
