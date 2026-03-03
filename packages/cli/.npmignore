@@ -1,0 +1,16 @@
+# Exclude OpenCode parser (requires better-sqlite3 native module)
+src/parsers/opencode.js
+
+# Exclude test files
+test/
+tests/
+*.test.js
+
+# Exclude development files
+.vscode/
+.idea/
+*.log
+
+# Exclude build artifacts that shouldn't be in npm
+dist/
+build/

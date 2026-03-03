@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tgz
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# Debug logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Claude Code state files (local only, don't commit)
+.claude-code-state.json
+openclaw-state.json
+
+# Package artifacts
+token-viz-*.tgz

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard — Token Visualizer</title>
+  <link rel="stylesheet" href="/css/leaderboard.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">
+      Token Visualizer
+    </div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/dashboard">Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="leaderboard-header">
+      <h1>Leaderboard</h1>
+      <p>Compare your AI usage with other developers</p>
+    </header>
+
+    <section class="filters">
+      <div class="filter-group">
+        <label>View</label>
+        <div class="view-dropdown" id="view-dropdown">
+          <button class="view-dropdown-btn" id="view-dropdown-btn">
+            <span class="view-dropdown-text" id="view-dropdown-text">Global</span>
+            <svg class="view-dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
+              <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+          <div class="view-dropdown-menu" id="view-dropdown-menu">
+            <div class="view-dropdown-search" id="view-dropdown-search" style="display: none;">
+              <input type="text" id="view-search-input" placeholder="Search groups...">
+            </div>
+            <div class="view-dropdown-options" id="view-dropdown-options">
+              <button class="view-dropdown-option active" data-view="global" data-value="">Global</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Sort</label>
+        <div class="btn-group">
+          <button class="btn-filter active" data-sort="totalTokens">Tokens</button>
+          <button class="btn-filter" data-sort="totalCost">Cost</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Period</label>
+        <div class="btn-group">
+          <button class="btn-period active" data-period="all">All</button>
+          <button class="btn-period" data-period="month">30D</button>
+          <button class="btn-period" data-period="week">7D</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="user-rank-card" id="user-rank-card" style="display: none;">
+      <div class="rank-badge" id="user-rank-badge">—</div>
+      <div class="user-stats">
+        <h3>Your Ranking</h3>
+        <div class="stat-row">
+          <span class="stat-label">Rank</span>
+          <span class="stat-value" id="user-rank-value">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Tokens</span>
+          <span class="stat-value" id="user-tokens-value">—</span>
+        </div>
+      </div>
+      <a href="/dashboard" class="btn-view-dashboard">Dashboard</a>
+    </section>
+
+    <section class="leaderboard-table-section">
+      <div class="table-container">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th class="col-rank">Rank</th>
+              <th class="col-user">User</th>
+              <th class="col-tokens">Tokens</th>
+              <th class="col-cost">Cost</th>
+              <th class="col-days">Days</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <tr class="loading-row">
+              <td colspan="5">
+                <div class="loading-spinner"></div>
+                <p>Loading...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-icon">—</div>
+        <h3>No Data Yet</h3>
+        <p>Be the first to appear on the leaderboard</p>
+      </div>
+    </section>
+
+    <section class="join-prompt" id="join-prompt" style="display: none;">
+      <h3>Join Leaderboard</h3>
+      <p>Enable leaderboard visibility in your profile settings</p>
+      <a href="/dashboard" class="btn">Open Settings</a>
+    </section>
+  </div>
+
+  <footer>
+    <p>Token Visualizer</p>
+  </footer>
+
+  <script src="/js/leaderboard.js"></script>
+</body>
+</html>

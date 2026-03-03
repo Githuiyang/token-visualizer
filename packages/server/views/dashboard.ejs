@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Token Visualizer (Vercel)</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/profile.css">
+  <!-- ECharts Library (CDN) - Required for dashboard charts.
+       NOTE: If this fails to load, check server.js CSP configuration.
+       The CDN domain must be whitelisted in scriptSrc directive. -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      Token Visualizer
+    </div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/leaderboard">Leaderboard</a>
+      <button class="nav-btn" id="settings-btn">Settings</button>
+    </div>
+  </nav>
+
+  <!-- User Rank Banner -->
+  <div class="rank-banner" id="rank-banner" style="display: none;">
+    <div class="rank-info">
+      <span class="rank-label">Your Ranking</span>
+      <span class="rank-divider">—</span>
+      <span class="rank-number" id="user-rank">#-</span>
+      <span class="rank-divider">—</span>
+      <span class="rank-tokens" id="rank-tokens">0 tokens</span>
+    </div>
+    <a href="/leaderboard" class="rank-link">View Leaderboard →</a>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1>Usage Dashboard</h1>
+      <div class="stats-summary">
+        <div class="stat stat-with-share">
+          <div class="stat-content">
+            <span class="label">Total Tokens</span>
+            <span class="value" id="total-tokens">—</span>
+          </div>
+          <button class="share-btn" id="share-btn" title="Share">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <path d="M16 6l-4-4-4 4"/>
+              <path d="M12 2v8"/>
+            </svg>
+          </button>
+        </div>
+        <div class="stat">
+          <span class="label">Total Cost</span>
+          <span class="value" id="total-cost">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">Days Active</span>
+          <span class="value" id="days-active">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">Models</span>
+          <span class="value" id="model-count">—</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="chart-section">
+        <h2>Cost by Model</h2>
+        <div id="pie-chart" class="chart"></div>
+        <div id="model-list" class="model-list"></div>
+      </section>
+
+      <section class="chart-section">
+        <h2>Daily Token Usage</h2>
+        <div id="line-chart" class="chart"></div>
+      </section>
+
+      <section class="chart-section full-width">
+        <h2>Activity Heatmap</h2>
+        <div id="heatmap" class="chart heatmap"></div>
+      </section>
+
+      <section class="chart-section full-width">
+        <h2>Daily Breakdown</h2>
+        <div id="daily-breakdown" class="daily-breakdown"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Profile Settings</h2>
+        <button class="modal-close" id="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="profile-form">
+          <div class="form-group">
+            <label for="profile-nickname">Nickname</label>
+            <input type="text" id="profile-nickname" maxlength="30" placeholder="Your display name">
+            <span class="help-text">Shown on leaderboards (max 30 characters)</span>
+          </div>
+
+          <div class="form-section">
+            <h3>Groups</h3>
+            <p class="section-help">Join groups to see rankings with friends and teammates</p>
+
+            <div class="groups-list" id="groups-list">
+              <span class="empty-groups">Loading groups...</span>
+            </div>
+
+            <div class="add-group-form">
+              <input type="text" id="new-group-name" maxlength="50" placeholder="Group name">
+              <button type="button" class="btn-add-group" id="btn-add-group">Join</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-api-key">API Key</label>
+            <div class="api-key-display">
+              <code id="profile-api-key">tv_***</code>
+              <button type="button" class="btn-copy" id="copy-api-key">Copy</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Privacy</h3>
+            <p class="section-help">Control what information is visible to others on the leaderboard</p>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="show-nickname">
+                <span>Show nickname on leaderboard</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="show-email">
+                <span>Show email on leaderboard</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="show-on-leaderboard">
+                <span>Appear on public leaderboard</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="modal-cancel">Cancel</button>
+            <button type="submit" class="btn-primary" id="modal-save">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay" id="share-modal" style="display: none;">
+    <div class="share-modal">
+      <button class="modal-close" id="share-close">×</button>
+      <h2>Share Stats</h2>
+      <div class="share-preview" id="share-preview">
+        <canvas id="share-canvas"></canvas>
+      </div>
+      <div class="share-tabs">
+        <button class="share-tab active" data-period="week">7 Days</button>
+        <button class="share-tab" data-period="month">30 Days</button>
+        <button class="share-tab" data-period="all">All Time</button>
+      </div>
+      <div class="share-actions">
+        <button class="btn-download" id="download-share">Download Image</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/profile.js"></script>
+  <script src="/js/share.js"></script>
+</body>
+</html>

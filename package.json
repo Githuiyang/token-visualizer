@@ -1,0 +1,16 @@
+{
+  "name": "token-visualizer",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=packages/server",
+    "push": "npm run push --workspace=packages/cli"
+  },
+  "dependencies": {
+    "sharp": "^0.34.5"
+  }
+}

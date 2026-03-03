@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd packages/server && npm install",
+  "outputDirectory": "packages/server/public",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "packages/server/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index.js" }
+  ]
+}
