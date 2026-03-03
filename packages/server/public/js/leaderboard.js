@@ -161,11 +161,4 @@ function setupFilters() {
 document.addEventListener('DOMContentLoaded', () => {
   setupFilters();
   fetchLeaderboard();
-
-  // Check if user has API key and update dashboard link
-  const apiKey = getUserApiKey();
-  const dashboardLink = document.getElementById('nav-dashboard');
-  if (apiKey) {
-    dashboardLink.href = `/dashboard?key=${apiKey}`;
-  }
 });
