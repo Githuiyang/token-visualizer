@@ -25,15 +25,50 @@ export const MODEL_PRICING = {
   'claude-3-haiku': { input: 0.25, output: 1.25, cached: 0.03 },
 
   // 智谱 AI (GLM) - 智谱AI bigmodel.cn
-  // 1元 ≈ 0.14美元
-  'glm-5': { input: 0.7, output: 0.7, cached: 0.14 },
-  'glm-4.7': { input: 0.7, output: 0.7, cached: 0.14 },
+  // 官网: https://open.bigmodel.cn/pricing
+  // 汇率: 1 USD ≈ 7.2 CNY
+
+  // GLM-5 (旗舰模型，面向 Coding 与 Agent)
+  // 输入: 4-6元/M, 输出: 18-22元/M
+  'glm-5': { input: 0.83, output: 3.1, cached: 0.08 },
+  'glm-5-code': { input: 1.11, output: 4.44, cached: 0.11 },
+
+  // GLM-4.7 (高性能)
+  // 输入: 2-4元/M, 输出: 8-16元/M
+  'glm-4.7': { input: 0.56, output: 2.2, cached: 0.05 },
   'glm-4.7-free': { input: 0, output: 0, cached: 0 },
-  'glm-4.6': { input: 0.7, output: 0.7, cached: 0.14 },
-  'glm-4.5': { input: 0.7, output: 0.7, cached: 0.14 },
-  'glm-4.5-air': { input: 0.7, output: 0.7, cached: 0.14 },  // Alias for glm-4.5
-  'glm-4': { input: 0.7, output: 0.7, cached: 0.14 },
-  'glm-3': { input: 0.14, output: 0.14, cached: 0.028 },
+
+  // GLM-4.5
+  'glm-4.5': { input: 0.014, output: 0.017, cached: 0.002 },
+
+  // GLM-4.5-Air (高性价比)
+  'glm-4.5-air': { input: 0.17, output: 1.1, cached: 0.01 },
+
+  // GLM-4-Plus (高智能旗舰)
+  'glm-4-plus': { input: 0.69, output: 0.35, cached: 0.04 },
+  'glm-4': { input: 0.69, output: 0.35, cached: 0.04 },
+
+  // GLM-4-Air (高性价比)
+  'glm-4-air': { input: 0.07, output: 0.03, cached: 0.005 },
+
+  // GLM-4-FlashX (高速低价)
+  'glm-4-flashx': { input: 0.014, output: 0.007, cached: 0.001 },
+  'glm-4-flash': { input: 0, output: 0, cached: 0 },
+
+  // GLM-4.7-FlashX
+  'glm-4.7-flashx': { input: 0.07, output: 0.42, cached: 0.005 },
+
+  // GLM-4-Long (超长输入)
+  'glm-4-long': { input: 0.14, output: 0.07, cached: 0.01 },
+
+  // GLM-Z1 系列
+  'glm-z1-air': { input: 0.07, output: 0, cached: 0 },
+  'glm-z1-airx': { input: 0.69, output: 0, cached: 0 },
+  'glm-z1-flashx': { input: 0.014, output: 0, cached: 0 },
+
+  // 旧版模型
+  'glm-4.6': { input: 0.69, output: 0.35, cached: 0.04 },
+  'glm-3': { input: 0.01, output: 0.01, cached: 0.002 },
 
   // Moonshot AI (Kimi)
   'kimi-k2.5': { input: 0.5, output: 0.5, cached: 0.05 },

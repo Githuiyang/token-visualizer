@@ -173,43 +173,6 @@
     ctx.fillText(costText, width / 2, yPos);
     yPos += 55;
 
-    // ===== 时间筛选 - 下划线设计 =====
-    const tabs = [
-      { key: 'week', label: '近7日' },
-      { key: 'month', label: '近30日' },
-      { key: 'all', label: '全部' }
-    ];
-
-    const tabSpacing = 35;
-    const tabsTotalWidth = tabs.length * 60 + (tabs.length - 1) * tabSpacing;
-    let tabX = (width - tabsTotalWidth) / 2;
-
-    tabs.forEach(tab => {
-      const isActive = data.period === tab.key;
-      const tabWidth = 60;
-
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'alphabetic';
-
-      if (isActive) {
-        // 下划线
-        ctx.fillStyle = COLORS.accent;
-        ctx.fillRect(tabX, yPos + 16, tabWidth, 1);
-
-        ctx.fillStyle = COLORS.textPrimary;
-        ctx.font = '500 12px -apple-system, sans-serif';
-      } else {
-        ctx.fillStyle = COLORS.textTertiary;
-        ctx.font = '400 12px -apple-system, sans-serif';
-      }
-
-      ctx.fillText(tab.label, tabX + tabWidth / 2, yPos + 12);
-
-      tabX += tabWidth + tabSpacing;
-    });
-
-    yPos += 55;
-
     // ===== 模型消耗榜单 - 极简列表 =====
     const maxCost = Math.max(...data.models.map(m => m.cost), 1);
 

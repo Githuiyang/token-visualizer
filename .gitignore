@@ -38,3 +38,4 @@ openclaw-state.json
 
 # Package artifacts
 token-viz-*.tgz
+.env*.local

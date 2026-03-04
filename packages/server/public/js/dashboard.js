@@ -53,6 +53,7 @@ async function loadDashboard() {
 
     // Render charts
     renderModelChart(stats.byModel);
+    renderDeviceChart(stats.byDevice);
     renderLineChart(stats.byDay);
     renderHeatmap(stats.byDay);
     renderDailyBreakdown(stats.byDayDetail);
@@ -156,6 +157,64 @@ function renderModelChart(byModel) {
       `;
     }).join('');
   }
+}
+
+// Render device breakdown pie chart
+function renderDeviceChart(byDevice) {
+  const container = document.getElementById('device-chart');
+  if (!container) return;
+
+  if (!byDevice || byDevice.length === 0) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6a6a6a;">No data</div>';
+    return;
+  }
+
+  const filtered = byDevice.filter(d => d.cost > 0);
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6a6a6a;">No device data</div>';
+    return;
+  }
+
+  if (charts.device) charts.device.dispose();
+  charts.device = echarts.init(container);
+
+  const option = {
+    tooltip: {
+      trigger: 'item',
+      formatter: (params) => {
+        const d = filtered[params.dataIndex];
+        return `${d.device}: ${formatCost(d.cost)} (${params.percent}%)<br/>${formatTokens(d.total_tokens)} tokens`;
+      }
+    },
+    series: [{
+      type: 'pie',
+      radius: ['50%', '75%'],
+      center: ['50%', '55%'],
+      data: filtered.map((d, i) => ({
+        value: d.cost,
+        name: d.device,
+        itemStyle: {
+          color: [
+            '#4a90d9', // 蓝
+            '#50c878', // 绿
+            '#d4a056', // 金
+            '#9b59b6', // 紫
+            '#e67e22', // 橙
+          ][i % 5]
+        }
+      })),
+      label: {
+        show: true,
+        position: 'outside',
+        formatter: '{b}',
+        fontSize: 10,
+        color: '#6a6a6a'
+      }
+    }]
+  };
+
+  charts.device.setOption(option);
 }
 
 // Render line chart

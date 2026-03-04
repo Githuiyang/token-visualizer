@@ -1,8 +1,11 @@
 /**
  * OpenClaw parser
  * Reads from ~/.openclaw/agents/<agentId>/sessions/*.jsonl
+ *
+ * Note: OpenClaw files are append-only (.jsonl), so we must read all entries each time.
+ * Deduplication is handled server-side based on bucket_start + model + source + project.
  */
-import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { aggregateToBuckets } from './index.js';
@@ -17,32 +20,6 @@ const POSSIBLE_ROOTS = [
   join(homedir(), '.moldbot'),
 ];
 
-const STATE_FILE = join(homedir(), '.token-visualizer', 'openclaw-state.json');
-
-function loadState() {
-  try {
-    return JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
-  } catch {
-    return { processedFiles: {} };
-  }
-}
-
-function saveState(state) {
-  const dir = join(homedir(), '.token-visualizer');
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  writeFileSync(STATE_FILE, JSON.stringify(state), 'utf-8');
-}
-
-function getFileHash(filePath) {
-  try {
-    const stat = readFileSync(filePath, 'utf-8');
-    // Simple hash: just use length + last 100 chars
-    return `${stat.length}:${stat.slice(-100)}`;
-  } catch {
-    return '';
-  }
-}
-
 /** Normalize usage fields — OpenClaw supports multiple naming conventions */
 function getTokens(usage, ...keys) {
   for (const key of keys) {
@@ -53,8 +30,6 @@ function getTokens(usage, ...keys) {
 
 export async function parse() {
   const entries = [];
-  const state = loadState();
-  const nextState = { processedFiles: { ...state.processedFiles } };
 
   for (const root of POSSIBLE_ROOTS) {
     const agentsDir = join(root, 'agents');
@@ -82,14 +57,6 @@ export async function parse() {
 
       for (const file of files) {
         const filePath = join(sessionsDir, file);
-        const fileKey = filePath;
-
-        // Check if file was already processed
-        const currentHash = getFileHash(filePath);
-        if (state.processedFiles[fileKey] === currentHash) {
-          continue; // Skip unchanged files
-        }
-        nextState.processedFiles[fileKey] = currentHash;
 
         let content;
         try {
@@ -143,6 +110,5 @@ export async function parse() {
     }
   }
 
-  saveState(nextState);
   return aggregateToBuckets(entries);
 }

@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
+import { homedir, hostname } from 'node:os';
 import { calculateCost } from '../config/models.js';
 
 export const AVAILABLE_PARSERS = [
@@ -8,6 +8,9 @@ export const AVAILABLE_PARSERS = [
   'openclaw',
   'opencode',
 ];
+
+// Get device name (hostname) for tracking
+const DEVICE_NAME = hostname();
 
 /**
  * Round date to nearest half-hour bucket
@@ -40,6 +43,7 @@ export function aggregateToBuckets(entries) {
         reasoningOutputTokens: 0,
         totalTokens: 0,
         cost: { input: 0, output: 0, cached: 0, total: 0 },
+        device: DEVICE_NAME,
       });
     }
 

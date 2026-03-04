@@ -94,7 +94,7 @@ function renderUserRank(currentUser) {
 // Fetch leaderboard data
 async function fetchLeaderboard() {
   const apiKey = getUserApiKey();
-  const userId = apiKey ? getUserIdFromApiKey(apiKey) : null;
+  const userId = apiKey ? await getUserIdFromApiKey(apiKey) : null;
   const url = new URL('/api/leaderboard', window.location.origin);
   url.searchParams.set('sortBy', currentSort);
   url.searchParams.set('period', currentPeriod);

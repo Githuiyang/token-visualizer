@@ -31,7 +31,7 @@ export async function getDb() {
       url: TURSO_URL,
       authToken: TURSO_TOKEN,
     });
-    
+
     // Initialize schema for Turso if needed (check if users table exists)
     let needSchema = false;
     try {
@@ -101,7 +101,8 @@ function runLocalMigrations(db) {
       UNIQUE(user_id, group_name)
     )`,
     'CREATE INDEX IF NOT EXISTS idx_user_groups_user ON user_groups(user_id)',
-    'CREATE INDEX IF NOT EXISTS idx_user_groups_group ON user_groups(group_name)'
+    'CREATE INDEX IF NOT EXISTS idx_user_groups_group ON user_groups(group_name)',
+    'ALTER TABLE usage_records ADD COLUMN device TEXT'
   ];
 
   for (const sql of migrations) {
@@ -134,7 +135,9 @@ export async function closeDb() {
 async function dbRun(sql, args = []) {
   const db = await getDb();
   if (dbType === 'libsql') {
-    return await db.execute({ sql, args });
+    await db.execute({ sql, args });
+    // LibSQL doesn't return the same structure as better-sqlite3
+    return { changes: 1 };
   } else {
     // better-sqlite3
     const stmt = db.prepare(sql);
@@ -186,38 +189,100 @@ export async function getUserByApiKey(apiKey) {
 // Usage record operations
 export async function insertUsageRecords(userId, records) {
   const db = await getDb();
-  
+
+  // GLM pricing fix - 官网: https://open.bigmodel.cn/pricing
+  // 汇率: 1 USD ≈ 7.2 CNY
+  const GLM_PRICING = {
+    default: { input: 0.69, output: 0.35, cached: 0.04 },
+    'glm-5': { input: 0.83, output: 3.1, cached: 0.08 },
+    'glm-5-code': { input: 1.11, output: 4.44, cached: 0.11 },
+    'glm-4.7': { input: 0.56, output: 2.2, cached: 0.05 },
+    'glm-4.7-flashx': { input: 0.07, output: 0.42, cached: 0.005 },
+    'glm-4.5': { input: 0.014, output: 0.017, cached: 0.002 },
+    'glm-4.5-air': { input: 0.17, output: 1.1, cached: 0.01 },
+    'glm-4-plus': { input: 0.69, output: 0.35, cached: 0.04 },
+    'glm-4-air': { input: 0.07, output: 0.03, cached: 0.005 },
+    'glm-4-flashx': { input: 0.014, output: 0.007, cached: 0.001 },
+    'glm-4-flash': { input: 0, output: 0, cached: 0 },
+    'glm-4-long': { input: 0.14, output: 0.07, cached: 0.01 },
+    'glm-3': { input: 0.01, output: 0.01, cached: 0.002 },
+  };
+  const GLM_MODELS = ['glm-5', 'glm-4.7', 'glm-4', 'glm-4.6', 'glm-4.5', 'glm-4.5-air', 'glm-4-plus', 'glm-4-air', 'glm-4-flash', 'glm-4-flashx', 'glm-4.7-flashx', 'glm-4-long', 'glm-3', 'glm-5-code'];
+
   if (dbType === 'libsql') {
     // LibSQL transaction
-    const batch = records.map(record => ({
-      sql: `
+    const batch = records.map(record => {
+      // Recalculate cost for GLM models
+      let cost = record.cost?.total || 0;
+      if (record.model && GLM_MODELS.some(m => record.model.includes(m))) {
+        // Find the specific model pricing
+        let pricing = GLM_PRICING.default;
+        const modelLower = record.model.toLowerCase();
+        for (const [key, value] of Object.entries(GLM_PRICING)) {
+          if (key !== 'default' && modelLower.includes(key)) {
+            pricing = value;
+            break;
+          }
+        }
+        const inputTokens = record.inputTokens || 0;
+        const outputTokens = record.outputTokens || 0;
+        const cachedTokens = record.cachedInputTokens || 0;
+        cost = (inputTokens / 1_000_000) * pricing.input +
+              (outputTokens / 1_000_000) * pricing.output +
+              (cachedTokens / 1_000_000) * pricing.cached;
+      }
+
+      return {
+        sql: `
         INSERT INTO usage_records
-        (user_id, model, project, input_tokens, output_tokens, cached_tokens, cost, bucket_start, source)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (user_id, model, project, input_tokens, output_tokens, cached_tokens, cost, bucket_start, source, device)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
-      args: [
-        userId,
-        record.model,
-        record.project || null,
-        record.inputTokens || 0,
-        record.outputTokens || 0,
-        record.cachedInputTokens || 0,
-        record.cost?.total || 0,
-        record.bucketStart,
-        record.source
-      ]
-    }));
+        args: [
+          userId,
+          record.model,
+          record.project || null,
+          record.inputTokens || 0,
+          record.outputTokens || 0,
+          record.cachedInputTokens || 0,
+          cost,
+          record.bucketStart,
+          record.source,
+          record.device || null
+        ]
+      };
+    });
     return await db.batch(batch);
   } else {
     // better-sqlite3 transaction
     const stmt = db.prepare(`
       INSERT INTO usage_records
-      (user_id, model, project, input_tokens, output_tokens, cached_tokens, cost, bucket_start, source)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (user_id, model, project, input_tokens, output_tokens, cached_tokens, cost, bucket_start, source, device)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertMany = db.transaction((records) => {
       for (const record of records) {
+        // Recalculate cost for GLM models
+        let cost = record.cost?.total || 0;
+        if (record.model && GLM_MODELS.some(m => record.model.includes(m))) {
+          // Find the specific model pricing
+          let pricing = GLM_PRICING.default;
+          const modelLower = record.model.toLowerCase();
+          for (const [key, value] of Object.entries(GLM_PRICING)) {
+            if (key !== 'default' && modelLower.includes(key)) {
+              pricing = value;
+              break;
+            }
+          }
+          const inputTokens = record.inputTokens || 0;
+          const outputTokens = record.outputTokens || 0;
+          const cachedTokens = record.cachedInputTokens || 0;
+          cost = (inputTokens / 1_000_000) * pricing.input +
+                (outputTokens / 1_000_000) * pricing.output +
+                (cachedTokens / 1_000_000) * pricing.cached;
+        }
+
         stmt.run(
           userId,
           record.model,
@@ -225,9 +290,10 @@ export async function insertUsageRecords(userId, records) {
           record.inputTokens || 0,
           record.outputTokens || 0,
           record.cachedInputTokens || 0,
-          record.cost?.total || 0,
+          cost,
           record.bucketStart,
-          record.source
+          record.source,
+          record.device || null
         );
       }
     });
@@ -291,7 +357,19 @@ export async function getUserStats(userId) {
     ORDER BY date DESC, cost DESC
   `, [userId]);
 
-  return { total, byModel, byDay, byDayDetail };
+  const byDevice = await dbAll(`
+    SELECT
+      COALESCE(device, 'unknown') as device,
+      SUM(input_tokens + output_tokens + cached_tokens) as total_tokens,
+      SUM(cost) as cost,
+      COUNT(*) as requests
+    FROM usage_records
+    WHERE user_id = ?
+    GROUP BY device
+    ORDER BY cost DESC
+  `, [userId]);
+
+  return { total, byModel, byDay, byDayDetail, byDevice };
 }
 
 export async function cleanupOldData(daysToKeep = 90) {
@@ -333,15 +411,18 @@ export async function registerUser(email, nickname, organization = null, showOnL
   }
 
   // Create new user
-  const result = await dbRun(`
+  await dbRun(`
     INSERT INTO users (api_key, email, email_hash, nickname, organization, show_on_leaderboard)
     VALUES (?, ?, ?, ?, ?, ?)
   `, [apiKey, email, emailHash, nickname, organization, showOnLeaderboard ? 1 : 0]);
 
+  // Get the newly created user by api_key
+  const newUser = await dbGet('SELECT id FROM users WHERE api_key = ?', [apiKey]);
+
   return {
     existing: false,
     apiKey,
-    userId: result.lastInsertRowid // Note: LibSQL might return different structure, need check
+    userId: newUser?.id
   };
 }
 
@@ -396,13 +477,18 @@ function formatEmail(email, showEmail) {
 export async function getLeaderboard(sortBy = 'totalTokens', limit = 100, period = 'all') {
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
-  // Build WHERE clause for period filtering
-  // Use SQLite's date function with subquery to avoid timezone issues
-  let periodWhere = '';
+  // Period filter: calculate cutoff date in JS to avoid SQLite timezone issues
+  let periodFilter = '';
   if (period === 'week') {
-    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-7 days'))`;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 7);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    periodFilter = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   } else if (period === 'month') {
-    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-30 days'))`;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    periodFilter = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   }
 
   const rows = await dbAll(`
@@ -415,10 +501,10 @@ export async function getLeaderboard(sortBy = 'totalTokens', limit = 100, period
       u.show_nickname,
       COALESCE(SUM(ur.input_tokens + ur.output_tokens + ur.cached_tokens), 0) as total_tokens,
       COALESCE(SUM(ur.cost), 0) as total_cost,
-      COUNT(DISTINCT DATE(ur.bucket_start)) as days_active
+      COUNT(DISTINCT CASE WHEN (ur.input_tokens + ur.output_tokens + ur.cached_tokens) > 0 THEN DATE(ur.bucket_start) END) as days_active
     FROM users u
     LEFT JOIN usage_records ur ON u.id = ur.user_id
-    WHERE u.show_on_leaderboard = 1 ${periodWhere}
+    WHERE u.show_on_leaderboard = 1 ${periodFilter}
     GROUP BY u.id
     ORDER BY ${sortColumn} DESC
     LIMIT ?
@@ -490,12 +576,18 @@ export async function removeUserFromGroup(userId, groupName) {
 export async function getGroupLeaderboard(groupName, sortBy = 'totalTokens', period = 'all') {
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
-  // Build WHERE clause for period filtering
-  let periodWhere = '';
+  // Period filter: calculate cutoff date in JS to avoid SQLite timezone issues
+  let periodFilter = '';
   if (period === 'week') {
-    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-7 days'))`;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 7);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    periodFilter = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   } else if (period === 'month') {
-    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-30 days'))`;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    periodFilter = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   }
 
   const rows = await dbAll(`
@@ -507,11 +599,11 @@ export async function getGroupLeaderboard(groupName, sortBy = 'totalTokens', per
       u.show_nickname,
       COALESCE(SUM(ur.input_tokens + ur.output_tokens + ur.cached_tokens), 0) as total_tokens,
       COALESCE(SUM(ur.cost), 0) as total_cost,
-      COUNT(DISTINCT DATE(ur.bucket_start)) as days_active
+      COUNT(DISTINCT CASE WHEN (ur.input_tokens + ur.output_tokens + ur.cached_tokens) > 0 THEN DATE(ur.bucket_start) END) as days_active
     FROM users u
     INNER JOIN user_groups ug ON u.id = ug.user_id
     LEFT JOIN usage_records ur ON u.id = ur.user_id
-    WHERE ug.group_name = ? ${periodWhere}
+    WHERE ug.group_name = ? ${periodFilter}
     GROUP BY u.id
     ORDER BY ${sortColumn} DESC
   `, [groupName]);

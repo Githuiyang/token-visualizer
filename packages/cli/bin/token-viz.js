@@ -2,17 +2,21 @@
 /**
  * Token Visualizer CLI
  */
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { exec, spawn } from 'child_process';
-import { unlinkSync, existsSync, writeFileSync, readFileSync, rmSync } from 'fs';
-import { join } from 'path';
+import { unlinkSync, existsSync, writeFileSync, readFileSync, rmSync, statSync } from 'fs';
 import { homedir } from 'os';
 import { parseAll, AVAILABLE_PARSERS } from '../src/parsers/index.js';
 import { calculateStats } from '../src/calculator.js';
 import { exportVisualization } from '../src/export.js';
 // Setup proxy support - must be imported before any fetch calls
 import '../src/proxy-fetch.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import {
   loadConfig, saveConfig, getApiKey, setApiKey, getServerUrl, isConfigured
 } from '../src/config.js';
@@ -223,6 +227,170 @@ program
       const percent = ((m.cost / stats.totalCost) * 100).toFixed(1);
       console.log(`  ${i + 1}. ${chalk.cyan(m.displayName.padEnd(25))} ${formatTokens(m.totalTokens).padStart(10)} · $${m.cost.toFixed(4).padStart(8)} (${percent}%)`);
     });
+  });
+
+// Status command - comprehensive status check (combined state, sources, verify)
+program
+  .command('status')
+  .description('Show comprehensive status: data sources, state files, local vs server')
+  .option('--clear', 'Clear all state files')
+  .action(async (options) => {
+    console.log(chalk.cyan('Token Visualizer - Status\n'));
+
+    const config = loadConfig();
+    const serverUrl = config.serverUrl || 'https://token-visualizer-fresh.vercel.app';
+    const apiKey = config.apiKey;
+    const stateDir = join(homedir(), '.token-visualizer');
+    const stateFiles = ['claude-code-state.json', 'openclaw-state.json'];
+
+    // Clear state if requested
+    if (options.clear) {
+      let cleared = 0;
+      for (const file of stateFiles) {
+        const filePath = join(stateDir, file);
+        if (existsSync(filePath)) {
+          try {
+            unlinkSync(filePath);
+            console.log(chalk.green(`  ✓ Cleared ${file}`));
+            cleared++;
+          } catch (e) {
+            console.log(chalk.red(`  ✗ Could not clear ${file}: ${e.message}`));
+          }
+        }
+      }
+      if (cleared === 0) {
+        console.log(chalk.dim('  No state files to clear'));
+      }
+      console.log();
+      return;
+    }
+
+    // Section 1: Data Sources
+    console.log(chalk.bold('Data Sources:'));
+    console.log(chalk.dim('─'.repeat(50)));
+
+    const sourceResults = [];
+
+    // Claude Code
+    const claudePath = join(homedir(), 'Library/Application Support/Claude/usage');
+    let claudeStatus = '✗', claudeInfo = 'not found';
+    if (existsSync(claudePath)) {
+      try {
+        const { readdirSync } = await import('fs');
+        const files = readdirSync(claudePath).filter(f => f.endsWith('json'));
+        claudeStatus = '✓'; claudeInfo = `${files.length} files`;
+      } catch { claudeInfo = 'accessible'; }
+    }
+    sourceResults.push({ name: 'claude-code', status: claudeStatus, info: claudeInfo });
+
+    // OpenClaw
+    const openclawPath = join(homedir(), '.openclaw/agents');
+    let openclawStatus = '✗', openclawInfo = 'not found';
+    if (existsSync(openclawPath)) {
+      try {
+        const { readdirSync } = await import('fs');
+        let count = 0;
+        const agents = readdirSync(openclawPath, { withFileTypes: true }).filter(d => d.isDirectory());
+        for (const agent of agents) {
+          const sessionsPath = join(openclawPath, agent.name, 'sessions');
+          if (existsSync(sessionsPath)) {
+            const files = readdirSync(sessionsPath).filter(f => f.endsWith('.jsonl'));
+            count += files.length;
+          }
+        }
+        openclawStatus = '✓'; openclawInfo = `${count} files`;
+      } catch { openclawInfo = 'accessible'; }
+    }
+    sourceResults.push({ name: 'openclaw', status: openclawStatus, info: openclawInfo });
+
+    // OpenCode
+    sourceResults.push({ name: 'opencode', status: '⚠', info: 'not in npm package' });
+
+    for (const r of sourceResults) {
+      const color = r.status === '✓' ? chalk.green : r.status === '✗' ? chalk.red : chalk.yellow;
+      console.log(`  ${color(r.status)} ${chalk.bold(r.name.padEnd(12))} ${chalk.dim(r.info)}`);
+    }
+
+    // Section 2: State Files
+    console.log(chalk.bold('\nState Files:'));
+    console.log(chalk.dim('─'.repeat(50)));
+
+    if (existsSync(stateDir)) {
+      for (const file of stateFiles) {
+        const filePath = join(stateDir, file);
+        const exists = existsSync(filePath);
+        const status = exists ? chalk.green('✓') : chalk.dim('✗');
+        const info = exists ? '' : chalk.dim('(not exist)');
+
+        console.log(`  ${status} ${chalk.bold(file)}`);
+
+        if (exists) {
+          try {
+            const content = readFileSync(filePath, 'utf-8');
+            const state = JSON.parse(content);
+
+            if (file === 'openclaw-state.json') {
+              const count = Object.keys(state.processedFiles || {}).length;
+              console.log(chalk.dim(`     ${count} files tracked`));
+            } else if (file === 'claude-code-state.json') {
+              const count = Object.keys(state).length;
+              console.log(chalk.dim(`     ${count} sessions tracked`));
+            }
+
+            const stats = statSync(filePath);
+            console.log(chalk.dim(`     ${new Date(stats.mtime).toLocaleString('zh-CN')}`));
+          } catch {}
+        }
+      }
+    } else {
+      console.log(chalk.dim('  (state directory does not exist)'));
+    }
+
+    // Section 3: Local vs Server
+    console.log(chalk.bold('\nLocal vs Server:'));
+    console.log(chalk.dim('─'.repeat(50)));
+
+    if (!apiKey) {
+      console.log(chalk.yellow('  ⚠ API key not configured'));
+      console.log(chalk.dim('     Run: token-viz config --set-key YOUR_KEY'));
+    } else {
+      try {
+        // Local data
+        const buckets = await parseAll();
+        const localStats = calculateStats(buckets);
+
+        // Server data
+        const response = await fetch(`${serverUrl}/api/stats`, {
+          headers: { 'X-API-Key': apiKey }
+        });
+
+        if (response.ok) {
+          const serverData = await response.json();
+          const serverTokens = serverData.total?.total_tokens || 0;
+          const serverCost = serverData.total?.total_cost || 0;
+
+          const inSync = Math.abs(localStats.totalTokens - serverTokens) < 1000 &&
+                         Math.abs(localStats.totalCost - serverCost) < 0.01;
+
+          console.log(`  ${chalk.bold('Tokens')}   ${chalk.cyan(formatTokens(localStats.totalTokens).padStart(10))} → ${chalk.cyan(formatTokens(serverTokens).padStart(10))}`);
+          console.log(`  ${chalk.bold('Cost')}     ${chalk.cyan(`$${localStats.totalCost.toFixed(2)}`.padStart(10))} → ${chalk.cyan(`$${serverCost.toFixed(2)}`.padStart(10))}`);
+          console.log(`  ${chalk.bold('Records')}  ${chalk.cyan(String(buckets.length).padStart(10))} → ${chalk.dim('local')}`);
+
+          console.log();
+          if (inSync) {
+            console.log(chalk.green('  ✓ Data is in sync'));
+          } else {
+            console.log(chalk.yellow('  ⚠ Data mismatch - run: token-viz push'));
+          }
+        } else {
+          console.log(chalk.red(`  ✗ Server error: ${response.status}`));
+        }
+      } catch (error) {
+        console.log(chalk.red(`  ✗ Error: ${error.message}`));
+      }
+    }
+
+    console.log();
   });
 
 // Config command
