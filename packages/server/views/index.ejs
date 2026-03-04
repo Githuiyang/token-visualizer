@@ -212,6 +212,7 @@
     // Translations
     const i18n = {
       en: {
+        brand: 'Token Visualizer',
         tagline: 'Track your AI token usage and costs',
         signInPrompt: 'Already have an account? ',
         signInBtn: 'Sign in',
@@ -246,11 +247,12 @@
         cliReference: 'CLI Commands Reference',
         upload: 'Upload data',
         openDash: 'Open dashboard',
-        saveKey: 'Save API key',
+        saveApiKey: 'Save API key',
         showStats: 'Show local stats',
         enterKey: 'Enter your API key'
       },
       zh: {
+        brand: 'Token Visualizer',
         tagline: '追踪你的 AI token 使用和成本',
         signInPrompt: '已有账号？',
         signInBtn: '登录',
@@ -333,11 +335,10 @@
       const nicknamePlaceholder = document.querySelector('input#nickname');
       if (nicknamePlaceholder) nicknamePlaceholder.placeholder = t.nickname;
 
-      const nicknameHelp = document.querySelector('input#nickname'] + '+ span';
-      if (document.querySelector('input#nickname']')) {
-        const helpText = document.querySelector('#register-form .help-text');
-        if (helpText) helpText.textContent = t.nicknameHelp;
-      }
+      // Update help texts (there are two of them)
+      const helpTexts = document.querySelectorAll('#register-form .help-text');
+      if (helpTexts[0]) helpTexts[0].textContent = t.generateKey;
+      if (helpTexts[1]) helpTexts[1].textContent = t.nicknameHelp;
 
       const checkboxLabel = document.querySelector('.checkbox-label span');
       if (checkboxLabel) checkboxLabel.textContent = t.appearOnLeaderboard;
