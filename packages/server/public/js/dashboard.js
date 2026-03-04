@@ -666,13 +666,13 @@ async function saveProfile() {
 
 // Open profile modal
 function openProfileModal() {
-  document.getElementById('profile-modal').style.display = 'flex';
+  document.getElementById('settings-modal').style.display = 'flex';
   loadProfile();
 }
 
 // Close profile modal
 function closeModal() {
-  document.getElementById('profile-modal').style.display = 'none';
+  document.getElementById('settings-modal').style.display = 'none';
 }
 
 // Escape HTML
@@ -685,7 +685,7 @@ function escapeHtml(text) {
 // Setup profile modal handlers
 function setupProfileModal() {
   // Settings button
-  const settingsBtn = document.getElementById('btn-settings');
+  const settingsBtn = document.getElementById('settings-btn');
   if (settingsBtn) {
     settingsBtn.addEventListener('click', openProfileModal);
   }
@@ -697,7 +697,7 @@ function setupProfileModal() {
   }
 
   // Close on overlay click
-  const modal = document.getElementById('profile-modal');
+  const modal = document.getElementById('settings-modal');
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal();
