@@ -472,8 +472,269 @@ function renderDailyBreakdown(byDayDetail) {
   `).join('');
 }
 
+// ============================================================================
+// Groups Management
+// ============================================================================
+
+// Load user's profile including groups
+async function loadProfile() {
+  const apiKey = getApiKey();
+  if (!apiKey) return;
+
+  try {
+    const response = await fetch('/api/profile', {
+      headers: { 'X-API-Key': apiKey }
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const profile = result.data;
+
+      // Update profile form
+      if (profile.nickname) {
+        document.getElementById('profile-nickname').value = profile.nickname;
+      }
+      if (profile.show_nickname) {
+        document.getElementById('show-nickname').checked = profile.show_nickname === 1;
+      }
+      if (profile.show_email) {
+        document.getElementById('show-email').checked = profile.show_email === 1;
+      }
+      if (profile.show_on_leaderboard) {
+        document.getElementById('show-on-leaderboard').checked = profile.show_on_leaderboard === 1;
+      }
+
+      // Display API key
+      document.getElementById('profile-api-key').textContent = apiKey;
+
+      // Load groups
+      await loadGroups();
+    }
+  } catch (error) {
+    console.error('Failed to load profile:', error);
+  }
+}
+
+// Load user's groups
+async function loadGroups() {
+  const apiKey = getApiKey();
+  if (!apiKey) return;
+
+  try {
+    const response = await fetch('/api/groups', {
+      headers: { 'X-API-Key': apiKey }
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const groups = result.data?.groups || [];
+      renderGroups(groups);
+    }
+  } catch (error) {
+    console.error('Failed to load groups:', error);
+  }
+}
+
+// Render groups list
+function renderGroups(groups) {
+  const container = document.getElementById('groups-list');
+  if (!container) return;
+
+  if (groups.length === 0) {
+    container.innerHTML = '<span class="empty-groups">No groups yet. Join one to compare with friends!</span>';
+    return;
+  }
+
+  container.innerHTML = groups.map(group => `
+    <div class="group-item">
+      <span class="group-name">${escapeHtml(group)}</span>
+      <button class="btn-leave-group" data-group="${escapeHtml(group)}" title="Leave group">×</button>
+    </div>
+  `).join('');
+
+  // Add leave handlers
+  container.querySelectorAll('.btn-leave-group').forEach(btn => {
+    btn.addEventListener('click', () => leaveGroup(btn.dataset.group));
+  });
+}
+
+// Join a group
+async function joinGroup(groupName) {
+  const apiKey = getApiKey();
+  if (!apiKey) return;
+
+  if (!groupName || !groupName.trim()) {
+    alert('Please enter a group name');
+    return;
+  }
+
+  const group = groupName.trim();
+
+  try {
+    const response = await fetch('/api/groups/join', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey
+      },
+      body: JSON.stringify({ group_name: group })
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Clear input
+      document.getElementById('new-group-name').value = '';
+      // Reload groups
+      await loadGroups();
+    } else {
+      alert(result.error || 'Failed to join group');
+    }
+  } catch (error) {
+    console.error('Failed to join group:', error);
+    alert('Failed to join group');
+  }
+}
+
+// Leave a group
+async function leaveGroup(groupName) {
+  const apiKey = getApiKey();
+  if (!apiKey) return;
+
+  if (!confirm(`Leave group "${groupName}"?`)) return;
+
+  try {
+    const response = await fetch('/api/groups/leave', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey
+      },
+      body: JSON.stringify({ group_name: groupName })
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      await loadGroups();
+    } else {
+      alert(result.error || 'Failed to leave group');
+    }
+  } catch (error) {
+    console.error('Failed to leave group:', error);
+    alert('Failed to leave group');
+  }
+}
+
+// Save profile settings
+async function saveProfile() {
+  const apiKey = getApiKey();
+  if (!apiKey) return;
+
+  const nickname = document.getElementById('profile-nickname').value;
+  const showNickname = document.getElementById('show-nickname').checked;
+  const showEmail = document.getElementById('show-email').checked;
+  const showOnLeaderboard = document.getElementById('show-on-leaderboard').checked;
+
+  try {
+    const response = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey
+      },
+      body: JSON.stringify({
+        nickname,
+        show_nickname: showNickname,
+        show_email: showEmail,
+        show_on_leaderboard: showOnLeaderboard
+      })
+    });
+
+    if (response.ok) {
+      alert('Profile saved!');
+      closeModal();
+    } else {
+      const result = await response.json();
+      alert(result.error || 'Failed to save profile');
+    }
+  } catch (error) {
+    console.error('Failed to save profile:', error);
+    alert('Failed to save profile');
+  }
+}
+
+// Open profile modal
+function openProfileModal() {
+  document.getElementById('profile-modal').style.display = 'flex';
+  loadProfile();
+}
+
+// Close profile modal
+function closeModal() {
+  document.getElementById('profile-modal').style.display = 'none';
+}
+
+// Escape HTML
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Setup profile modal handlers
+function setupProfileModal() {
+  // Settings button
+  const settingsBtn = document.getElementById('btn-settings');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', openProfileModal);
+  }
+
+  // Close button
+  const closeBtn = document.getElementById('modal-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+  }
+
+  // Close on overlay click
+  const modal = document.getElementById('profile-modal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  // Join group button
+  const addGroupBtn = document.getElementById('btn-add-group');
+  if (addGroupBtn) {
+    addGroupBtn.addEventListener('click', () => {
+      const input = document.getElementById('new-group-name');
+      if (input) {
+        joinGroup(input.value);
+      }
+    });
+  }
+
+  // Enter key on group input
+  const groupInput = document.getElementById('new-group-name');
+  if (groupInput) {
+    groupInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        joinGroup(groupInput.value);
+      }
+    });
+  }
+}
+
+// ============================================================================
 // Initialize
-document.addEventListener('DOMContentLoaded', loadDashboard);
+// ============================================================================
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+  setupProfileModal();
+});
 
 // Handle window resize
 window.addEventListener('resize', () => {
