@@ -143,6 +143,31 @@
 
       <!-- CLI Reference (Collapsible) - Hidden when logged in -->
       <section class="reference-section" id="reference-section">
+        <button class="reference-toggle" id="reference-toggle">
+          <span>CLI Commands Reference</span>
+          <span class="toggle-icon">▼</span>
+        </button>
+        <div class="reference-content" id="reference-content">
+          <div class="commands-table">
+            <div class="command-row">
+              <code data-replace-key-template="push">token-viz push --key YOUR_API_KEY</code>
+              <span>Upload data</span>
+            </div>
+            <div class="command-row">
+              <code data-replace-key-template="dash">token-viz dash --key YOUR_API_KEY</code>
+              <span>Open dashboard</span>
+            </div>
+            <div class="command-row">
+              <code data-replace-key-template="config">token-viz config --set-key YOUR_API_KEY</code>
+              <span>Save API key</span>
+            </div>
+            <div class="command-row">
+              <code>token-viz stats</code>
+              <span>Show local stats</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer>
