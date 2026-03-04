@@ -183,6 +183,252 @@
     </footer>
   </div>
 
+  <!-- Language Toggle Button -->
+  <button id="lang-toggle" class="lang-toggle">EN</button>
+
+  <style>
+    .lang-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #e8e8e8;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      z-index: 100;
+    }
+    .lang-toggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+
+  <script>
+    // Translations
+    const i18n = {
+      en: {
+        tagline: 'Track your AI token usage and costs',
+        signInPrompt: 'Already have an account? ',
+        signInBtn: 'Sign in',
+        welcomeBack: 'Welcome back! ',
+        dashboard: 'Dashboard',
+        leaderboard: 'Leaderboard',
+        signOut: 'Sign out',
+        getStarted: 'Get Started',
+        generateKey: 'Your API key will be generated from your email',
+        nickname: 'Your display name',
+        nicknameHelp: 'Shown on leaderboards (max 30 characters)',
+        appearOnLeaderboard: 'Appear on public leaderboard',
+        generateApiKey: 'Generate API Key',
+        yourApiKey: 'Your API Key',
+        saveKey: 'Save this key - you\\'ll need it to upload your data',
+        installCLI: 'Install CLI',
+        installCmd: 'Run this command in your terminal',
+        uploadData: 'Upload your data',
+        uploadDesc: 'Push your AI usage data to the server',
+        viewDashboard: 'View your dashboard',
+        viewDashboardDesc: 'See your usage statistics and trends',
+        openDashboard: 'Open Dashboard',
+        features: 'Features',
+        visualize: 'Visualize',
+        visualizeDesc: 'Track your token consumption over time with clean charts and heatmaps',
+        costs: 'Costs',
+        costsDesc: 'Monitor spending across different AI models and projects',
+        groups: 'Groups',
+        groupsDesc: 'Create groups to compare usage with friends and teammates',
+        leaderboard: 'Leaderboard',
+        leaderboardDesc: 'Optional public leaderboard to see how you rank among developers',
+        cliReference: 'CLI Commands Reference',
+        upload: 'Upload data',
+        openDash: 'Open dashboard',
+        saveKey: 'Save API key',
+        showStats: 'Show local stats',
+        enterKey: 'Enter your API key'
+      },
+      zh: {
+        tagline: '追踪你的 AI token 使用和成本',
+        signInPrompt: '已有账号？',
+        signInBtn: '登录',
+        welcomeBack: '欢迎回来！',
+        dashboard: '仪表盘',
+        leaderboard: '排行榜',
+        signOut: '退出',
+        getStarted: '开始使用',
+        generateKey: '你的 API key 将根据邮箱生成',
+        nickname: '显示名称',
+        nicknameHelp: '在排行榜上显示（最多 30 个字符）',
+        appearOnLeaderboard: '在公开排行榜显示',
+        generateApiKey: '生成 API Key',
+        yourApiKey: '你的 API Key',
+        saveKey: '保存此密钥 - 上传数据时需要',
+        installCLI: '安装 CLI',
+        installCmd: '在终端中运行此命令',
+        uploadData: '上传数据',
+        uploadDesc: '将你的 AI 使用数据推送到服务器',
+        viewDashboard: '查看仪表盘',
+        viewDashboardDesc: '查看使用统计和趋势',
+        openDashboard: '打开仪表盘',
+        features: '功能特性',
+        visualize: '可视化',
+        visualizeDesc: '通过清晰的图表和热力图追踪 token 消耗',
+        costs: '成本',
+        costsDesc: '监控不同 AI 模型和项目的花费',
+        groups: '群组',
+        groupsDesc: '创建群组，与朋友和团队成员比较使用情况',
+        leaderboard: '排行榜',
+        leaderboardDesc: '可选的公开排行榜，查看你在开发者中的排名',
+        cliReference: 'CLI 命令参考',
+        upload: '上传数据',
+        openDash: '打开仪表盘',
+        saveKey: '保存 API Key',
+        showStats: '显示本地统计',
+        enterKey: '输入你的 API Key'
+      }
+    };
+
+    let currentLang = localStorage.getItem('tokenviz_lang') || 'en';
+
+    function updateLanguage() {
+      const t = i18n[currentLang];
+      const langBtn = document.getElementById('lang-toggle');
+      if (langBtn) langBtn.textContent = currentLang === 'en' ? 'EN' : '中';
+
+      // Hero section
+      const tagline = document.querySelector('.tagline');
+      if (tagline) tagline.textContent = t.tagline;
+
+      const signInPrompt = document.getElementById('sign-in-prompt');
+      if (signInPrompt) {
+        signInPrompt.innerHTML = `${t.signInPrompt}<button class="sign-in-btn" id="sign-in-btn">${t.signInBtn}</button>`;
+        // Re-attach event listener
+        document.getElementById('sign-in-btn').addEventListener('click', () => {
+          document.getElementById('signin-modal').style.display = 'flex';
+        });
+      }
+
+      const userWelcome = document.getElementById('user-welcome');
+      if (userWelcome) {
+        const links = userWelcome.querySelectorAll('a');
+        if (links[0]) links[0].textContent = t.dashboard;
+        if (links[1]) links[1].textContent = t.leaderboard;
+        const signOutBtn = document.getElementById('sign-out-btn');
+        if (signOutBtn) signOutBtn.textContent = t.signOut;
+      }
+
+      // Register section
+      const getStarted = document.querySelector('#register-form h2');
+      if (getStarted) getStarted.textContent = t.generateApiKey;
+
+      const subtitle = document.querySelector('#register-form .subtitle');
+      if (subtitle) subtitle.textContent = t.generateKey;
+
+      const nicknameLabel = document.querySelector('label[for="nickname"]');
+      if (nicknameLabel) nicknameLabel.textContent = t.nickname;
+
+      const nicknamePlaceholder = document.querySelector('input#nickname');
+      if (nicknamePlaceholder) nicknamePlaceholder.placeholder = t.nickname;
+
+      const nicknameHelp = document.querySelector('input#nickname'] + '+ span';
+      if (document.querySelector('input#nickname']')) {
+        const helpText = document.querySelector('#register-form .help-text');
+        if (helpText) helpText.textContent = t.nicknameHelp;
+      }
+
+      const checkboxLabel = document.querySelector('.checkbox-label span');
+      if (checkboxLabel) checkboxLabel.textContent = t.appearOnLeaderboard;
+
+      const submitBtn = document.querySelector('#submit-btn .btn-text');
+      if (submitBtn) submitBtn.textContent = t.generateApiKey;
+
+      // Logged in section
+      const loggedInSection = document.getElementById('logged-in-section');
+      if (loggedInSection) {
+        loggedInSection.querySelector('h2').textContent = t.yourApiKey;
+        loggedInSection.querySelectorAll('h2')[1].textContent = t.getStarted;
+        loggedInSection.querySelector('.subtitle').textContent = t.saveKey;
+      }
+
+      const copyBtn = document.getElementById('copy-api-key-btn');
+      if (copyBtn) copyBtn.textContent = 'Copy';
+
+      // Todo list
+      const todoItems = document.querySelectorAll('.todo-content h3');
+      if (todoItems[0]) todoItems[0].textContent = t.installCLI;
+      const todoP = document.querySelectorAll('.todo-content p');
+      if (todoP[0]) todoP[0].textContent = t.installCmd;
+      if (todoP[1]) todoP[1].textContent = t.uploadDesc;
+      if (todoP[2]) todoP[2].textContent = t.viewDashboardDesc;
+
+      const dashboardBtn = document.querySelector('.upload-actions .btn-secondary');
+      if (dashboardBtn) dashboardBtn.textContent = t.openDashboard;
+
+      // Features
+      const featuresSection = document.querySelector('.features-section h2');
+      if (featuresSection) featuresSection.textContent = t.features;
+
+      const features = document.querySelectorAll('.feature-card h3');
+      const featureDescs = document.querySelectorAll('.feature-card p');
+      if (features[0]) features[0].textContent = t.visualize;
+      if (features[1]) features[1].textContent = t.costs;
+      if (features[2]) features[2].textContent = t.groups;
+      if (features[3]) features[3].textContent = t.leaderboard;
+      if (featureDescs[0]) featureDescs[0].textContent = t.visualizeDesc;
+      if (featureDescs[1]) featureDescs[1].textContent = t.costsDesc;
+      if (featureDescs[2]) featureDescs[2].textContent = t.groupsDesc;
+      if (featureDescs[3]) featureDescs[3].textContent = t.leaderboardDesc;
+
+      // Reference section
+      const refToggle = document.getElementById('reference-toggle');
+      if (refToggle) {
+        refToggle.querySelector('span:first-child').textContent = t.cliReference;
+      }
+
+      const refTable = document.querySelector('.commands-table');
+      if (refTable) {
+        const spans = refTable.querySelectorAll('.command-row span');
+        if (spans[0]) spans[0].textContent = t.upload;
+        if (spans[1]) spans[1].textContent = t.openDash;
+        if (spans[2]) spans[2].textContent = t.saveKey;
+        if (spans[3]) spans[3].textContent = t.showStats;
+      }
+
+      // Sign in modal
+      const signinModal = document.querySelector('.modal-signin h2');
+      if (signinModal) signinModal.textContent = t.signInBtn;
+
+      const signinSubtitle = document.querySelector('.modal-signin .subtitle');
+      if (signinSubtitle) signinSubtitle.textContent = t.enterKey;
+
+      const signinSubmit = document.querySelector('#signin-submit .btn-text');
+      if (signinSubmit) signinSubmit.textContent = t.signInBtn;
+
+      // Footer
+      const footer = document.querySelector('footer p');
+      if (footer) footer.textContent = `${t.brand} — ${t.tagline}`;
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'zh' : 'en';
+      localStorage.setItem('tokenviz_lang', currentLang);
+      updateLanguage();
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      updateLanguage();
+
+      const langBtn = document.getElementById('lang-toggle');
+      if (langBtn) {
+        langBtn.addEventListener('click', toggleLanguage);
+      }
+    });
+  </script>
+
   <!-- Sign In Modal -->
   <div class="modal-overlay" id="signin-modal" style="display: none;">
     <div class="modal-signin">

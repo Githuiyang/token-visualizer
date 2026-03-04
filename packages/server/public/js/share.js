@@ -171,7 +171,7 @@
     ctx.font = '32px Georgia, serif';
     ctx.textAlign = 'center';
     ctx.fillText(costText, width / 2, yPos);
-    yPos += 55;
+    yPos += 70;
 
     // ===== 模型消耗榜单 - 极简列表 =====
     const maxCost = Math.max(...data.models.map(m => m.cost), 1);

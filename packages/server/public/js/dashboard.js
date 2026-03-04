@@ -2,6 +2,144 @@
 
 // State
 let charts = {};
+let currentLang = localStorage.getItem('tokenviz_lang') || 'en';
+
+// Translations
+const i18n = {
+  en: {
+    brand: 'Token Visualizer',
+    home: 'Home',
+    leaderboard: 'Leaderboard',
+    settings: 'Settings',
+    usageDashboard: 'Usage Dashboard',
+    totalTokens: 'Total Tokens',
+    totalCost: 'Total Cost',
+    daysActive: 'Days Active',
+    models: 'Models',
+    costByModel: 'Cost by Model',
+    tokensByDevice: 'Tokens by Device',
+    dailyTokenUsage: 'Daily Token Usage',
+    activityHeatmap: 'Activity Heatmap',
+    dailyBreakdown: 'Daily Breakdown',
+    yourRanking: 'Your Ranking',
+    viewLeaderboard: 'View Leaderboard →',
+    profileSettings: 'Profile Settings',
+    nickname: 'Nickname',
+    showNickname: 'Show nickname',
+    showEmail: 'Show email',
+    showOnLeaderboard: 'Show on leaderboard',
+    saveProfile: 'Save Profile',
+    joinGroup: 'Join Group',
+    groupName: 'Group Name',
+    noGroups: 'No groups yet. Join one to compare with friends!',
+    leave: '×',
+    share: 'Share',
+    shareImage: 'Share Image',
+    download: 'Download',
+    selectPeriod: 'Select Period',
+    last7Days: 'Last 7 Days',
+    last30Days: 'Last 30 Days',
+    allTime: 'All Time'
+  },
+  zh: {
+    brand: 'Token Visualizer',
+    home: '首页',
+    leaderboard: '排行榜',
+    settings: '设置',
+    usageDashboard: '使用情况',
+    totalTokens: '总 Tokens',
+    totalCost: '总成本',
+    daysActive: '活跃天数',
+    models: '模型',
+    costByModel: '按模型成本',
+    tokensByDevice: '按设备消耗',
+    dailyTokenUsage: '每日 Token 使用',
+    activityHeatmap: '活动热力图',
+    dailyBreakdown: '每日详情',
+    yourRanking: '你的排名',
+    viewLeaderboard: '查看排行榜 →',
+    profileSettings: '个人资料设置',
+    nickname: '昵称',
+    showNickname: '显示昵称',
+    showEmail: '显示邮箱',
+    showOnLeaderboard: '在排行榜显示',
+    saveProfile: '保存资料',
+    joinGroup: '加入群组',
+    groupName: '群组名称',
+    noGroups: '还没有群组，加入一个和朋友一起比较！',
+    leave: '×',
+    share: '分享',
+    shareImage: '分享图片',
+    download: '下载',
+    selectPeriod: '选择时间段',
+    last7Days: '近 7 日',
+    last30Days: '近 30 日',
+    allTime: '全部'
+  }
+};
+
+// Update all text based on current language
+function updateLanguage() {
+  const t = i18n[currentLang];
+  const langBtn = document.getElementById('lang-toggle');
+  if (langBtn) langBtn.textContent = currentLang === 'en' ? 'EN' : '中';
+
+  // Navbar
+  document.querySelector('.nav-brand').textContent = t.brand;
+  document.querySelector('a[href="/"]').textContent = t.home;
+  document.querySelector('a[href="/leaderboard"]').textContent = t.leaderboard;
+  document.getElementById('settings-btn').textContent = t.settings;
+
+  // Rank banner
+  const rankLabel = document.querySelector('.rank-label');
+  const rankLink = document.querySelector('.rank-link');
+  if (rankLabel) rankLabel.textContent = t.yourRanking;
+  if (rankLink) rankLink.textContent = t.viewLeaderboard;
+
+  // Header
+  document.querySelector('header h1').textContent = t.usageDashboard;
+  document.querySelectorAll('.stat .label').forEach((el, i) => {
+    const labels = [t.totalTokens, t.totalCost, t.daysActive, t.models];
+    if (labels[i]) el.textContent = labels[i];
+  });
+
+  // Chart sections
+  const chartSections = document.querySelectorAll('.chart-section h2');
+  chartSections.forEach(h2 => {
+    const text = h2.textContent;
+    if (text.includes('Cost by Model') || text.includes('按模型成本')) h2.textContent = t.costByModel;
+    else if (text.includes('Tokens by Device') || text.includes('按设备消耗')) h2.textContent = t.tokensByDevice;
+    else if (text.includes('Daily Token Usage') || text.includes('每日')) h2.textContent = t.dailyTokenUsage;
+    else if (text.includes('Activity Heatmap') || text.includes('活动热力图')) h2.textContent = t.activityHeatmap;
+    else if (text.includes('Daily Breakdown') || text.includes('每日详情')) h2.textContent = t.dailyBreakdown;
+  });
+
+  // Modal
+  const modalTitle = document.querySelector('.modal-header h2');
+  if (modalTitle) modalTitle.textContent = t.profileSettings;
+  const saveBtn = document.getElementById('save-profile-btn');
+  if (saveBtn) saveBtn.textContent = t.saveProfile;
+  const addGroupBtn = document.getElementById('btn-add-group');
+  if (addGroupBtn) addGroupBtn.textContent = t.joinGroup;
+
+  // Share tabs
+  const shareTabs = document.querySelectorAll('.share-tab');
+  shareTabs.forEach(tab => {
+    const period = tab.dataset.period;
+    if (period === 'week') tab.textContent = t.last7Days;
+    else if (period === 'month') tab.textContent = t.last30Days;
+    else if (period === 'all') tab.textContent = t.allTime;
+  });
+}
+
+// Toggle language
+function toggleLanguage() {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  localStorage.setItem('tokenviz_lang', currentLang);
+  updateLanguage();
+  // Re-render charts with new language
+  loadDashboard();
+}
 
 // Check for API key
 function getApiKey() {
@@ -57,6 +195,9 @@ async function loadDashboard() {
     renderLineChart(stats.byDay);
     renderHeatmap(stats.byDay);
     renderDailyBreakdown(stats.byDayDetail);
+
+    // Update language for dynamic content
+    updateLanguage();
 
   } catch (error) {
     console.error('Failed to load dashboard:', error);
@@ -743,6 +884,12 @@ function escapeHtml(text) {
 
 // Setup profile modal handlers
 function setupProfileModal() {
+  // Language toggle button
+  const langBtn = document.getElementById('lang-toggle');
+  if (langBtn) {
+    langBtn.addEventListener('click', toggleLanguage);
+  }
+
   // Settings button
   const settingsBtn = document.getElementById('settings-btn');
   if (settingsBtn) {
@@ -791,6 +938,7 @@ function setupProfileModal() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  updateLanguage();
   loadDashboard();
   setupProfileModal();
 });

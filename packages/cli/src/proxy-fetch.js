@@ -14,31 +14,38 @@ const COMMON_PORTS = [
   7893,    //
   1086,    //
   10888,
-  1087,    // Shadowsocks
-  10808,   // V2Ray
-  10809,   //
-  7890,    //
   8080,    // Fiddler
   8118,    // Charles Proxy
 ];
 
-let proxyTried = false;
+// Track the first working proxy we found (to avoid redundant testing)
+let workingProxyUrl = null;
 
-// Test if a proxy port actually works
+/**
+ * Test if a proxy port actually works by making a real request
+ * This creates a temporary dispatcher for testing without affecting global state
+ */
 async function testProxyPort(host, port) {
-  if (proxyTried) return false;
+  // Skip if we already found a working proxy
+  if (workingProxyUrl) return false;
 
   try {
     const { setGlobalDispatcher, ProxyAgent } = await import('undici');
-    setGlobalDispatcher(new ProxyAgent(`http://${host}:${port}`));
-    proxyTried = true;
 
-    // Quick timeout test
+    // Set up temporary proxy for this test
+    setGlobalDispatcher(new ProxyAgent(`http://${host}:${port}`));
+
+    // Quick connectivity test with timeout
     const response = await fetch('https://www.google.com', {
       method: 'HEAD',
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(3000)
     });
-    return response.ok || response.status === 404; // 404 also means proxy works
+
+    const works = response.ok || response.status === 404 || response.status === 302;
+    if (works) {
+      workingProxyUrl = `http://${host}:${port}`;
+    }
+    return works;
   } catch {
     return false;
   }
@@ -132,7 +139,7 @@ async function detectLinuxProxy() {
 async function tryCommonPorts() {
   for (const port of COMMON_PORTS) {
     if (await testProxyPort('127.0.0.1', port)) {
-      return `http://127.0.0.1:${port}`;
+      return workingProxyUrl || `http://127.0.0.1:${port}`;
     }
   }
   return null;
