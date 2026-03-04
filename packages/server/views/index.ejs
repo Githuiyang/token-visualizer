@@ -73,34 +73,43 @@
 
       <!-- Logged In Section (shown when logged in) -->
       <section class="logged-in-section" id="logged-in-section" style="display: none;">
-        <h2>Your API Key</h2>
-        <div class="api-key-display">
-          <div class="key-container">
-            <code id="user-api-key"></code>
-            <button class="btn-copy" id="copy-api-key-btn">Copy</button>
-          </div>
-        </div>
+        <h2>Get Started</h2>
+        <p class="subtitle">Follow these steps to upload your data</p>
 
-        <!-- Two-Step Upload -->
-        <div class="upload-section">
-          <h2>Upload Your Data</h2>
-          <p class="subtitle">One command to install CLI and push your data</p>
-
-          <div class="upload-step">
-            <div class="step-header">
-              <div class="step-icon">🚀</div>
-              <h3>Run this command</h3>
+        <div class="todo-list">
+          <div class="todo-item">
+            <div class="todo-number">1</div>
+            <div class="todo-content">
+              <h3>Install CLI</h3>
+              <p>Run this command in your terminal</p>
+              <div class="command-box">
+                <code>npm install -g token-viz-cli</code>
+                <button class="btn-copy" data-copy="npm install -g token-viz-cli">Copy</button>
+              </div>
             </div>
-            <div class="command-box">
-              <code id="upload-command">Loading...</code>
-              <button class="btn-copy" id="copy-upload-btn">Copy</button>
-            </div>
-            <p class="step-hint">First run installs CLI, subsequent runs are instant</p>
           </div>
 
-          <div class="upload-actions">
-            <a href="/dashboard" class="btn btn-secondary">View Dashboard</a>
-            <a href="/leaderboard" class="btn btn-secondary">Leaderboard</a>
+          <div class="todo-item">
+            <div class="todo-number">2</div>
+            <div class="todo-content">
+              <h3>Upload your data</h3>
+              <p>Push your AI usage data to the server</p>
+              <div class="command-box">
+                <code id="upload-command">Loading...</code>
+                <button class="btn-copy" id="copy-upload-btn">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="todo-item">
+            <div class="todo-number">3</div>
+            <div class="todo-content">
+              <h3>View your dashboard</h3>
+              <p>See your usage statistics and trends</p>
+              <div class="upload-actions">
+                <a href="/dashboard" class="btn btn-secondary">Open Dashboard</a>
+              </div>
+            </div>
           </div>
         </div>
       </section>

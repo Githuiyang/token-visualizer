@@ -383,4 +383,12 @@ if (nicknameInput) {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   checkLoginState();
+
+  // Set up all copy buttons with data-copy attribute
+  document.querySelectorAll('.btn-copy[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.getAttribute('data-copy');
+      copyToClipboard(text, btn);
+    });
+  });
 });
