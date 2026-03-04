@@ -397,11 +397,12 @@ export async function getLeaderboard(sortBy = 'totalTokens', limit = 100, period
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
   // Build WHERE clause for period filtering
+  // Use datetime() with local time modifier to get correct date boundaries
   let periodWhere = '';
   if (period === 'week') {
-    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-7 days')`;
+    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-7 days', 'localtime')`;
   } else if (period === 'month') {
-    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-30 days')`;
+    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-30 days', 'localtime')`;
   }
 
   const rows = await dbAll(`
@@ -490,11 +491,12 @@ export async function getGroupLeaderboard(groupName, sortBy = 'totalTokens', per
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
   // Build WHERE clause for period filtering
+  // Use datetime() with local time modifier to get correct date boundaries
   let periodWhere = '';
   if (period === 'week') {
-    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-7 days')`;
+    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-7 days', 'localtime')`;
   } else if (period === 'month') {
-    periodWhere = `AND DATE(ur.bucket_start) >= DATE('now', '-30 days')`;
+    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-30 days', 'localtime')`;
   }
 
   const rows = await dbAll(`
