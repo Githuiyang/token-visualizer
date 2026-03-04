@@ -9,6 +9,9 @@ export async function handleLeaderboard(req, res) {
   const period = req.query.period || 'all';
   const group = req.query.group; // Group filter
 
+  // Debug logging
+  console.log('[leaderboard] queryParams:', { sortBy, limit, period, group });
+
   try {
     let leaderboard;
     if (group) {
@@ -17,6 +20,10 @@ export async function handleLeaderboard(req, res) {
     } else {
       // Get global leaderboard
       leaderboard = await getLeaderboard(sortBy, limit, period);
+    }
+    console.log('[leaderboard] result count:', leaderboard.length);
+    if (leaderboard.length > 0) {
+      console.log('[leaderboard] first user:', leaderboard[0].nickname, 'daysActive:', leaderboard[0].daysActive);
     }
     res.json({ data: leaderboard });
   } catch (err) {
