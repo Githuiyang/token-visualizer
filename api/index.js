@@ -19,6 +19,7 @@ import { handleRegister } from '../packages/server/api/register.js';
 import { handleLeaderboard } from '../packages/server/api/leaderboard.js';
 import { handleGetProfile, handleUpdateProfile } from '../packages/server/api/profile.js';
 import { handleJoinGroup, handleLeaveGroup, handleGetUserGroups } from '../packages/server/api/groups.js';
+import { handleCheckEmail } from '../packages/server/api/check-email.js';
 import { createUser, closeDb } from '../packages/server/db/index.js';
 
 const app = express();
@@ -62,6 +63,7 @@ app.get('/leaderboard', (req, res) => res.render('leaderboard'));
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // API routes
+app.get('/api/check-email', handleCheckEmail);
 app.post('/api/push', authMiddleware, handlePush);
 app.get('/api/stats', authMiddleware, handleStats);
 app.post('/api/register', handleRegister);
