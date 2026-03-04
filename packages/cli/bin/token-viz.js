@@ -8,7 +8,7 @@ import { exec, spawn } from 'child_process';
 import { unlinkSync, existsSync, writeFileSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { parseAll } from '../src/parsers/index.js';
+import { parseAll, AVAILABLE_PARSERS } from '../src/parsers/index.js';
 import { calculateStats } from '../src/calculator.js';
 import { exportVisualization } from '../src/export.js';
 // Setup proxy support - must be imported before any fetch calls
