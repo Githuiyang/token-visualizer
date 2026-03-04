@@ -1,4 +1,4 @@
-// Share Card Generator - Redesigned Layout
+// Share Card Generator - Minimal & Premium Design
 (() => {
   const shareBtn = document.getElementById('share-btn');
   const shareModal = document.getElementById('share-modal');
@@ -9,18 +9,17 @@
 
   let currentPeriod = 'all';
 
-  // Colors matching the page theme
+  // Minimal color palette - inspired by Claude Code design
   const COLORS = {
-    bg: '#0a0a0a',
-    bgSecondary: '#111111',
-    textPrimary: '#f5f5f5',
-    textSecondary: '#a8a8a8',
-    textTertiary: '#6a6a6a',
-    accent: '#d4a056',
-    accentHover: '#e8b86a',
-    border: '#3a3a3a',
-    borderLight: '#1f1f1f',
-    glow: 'rgba(212, 160, 86, 0.3)'
+    bg: '#000000',                    // Pure black
+    bgSecondary: '#0a0a0a',           // Very dark gray
+    border: '#1a1a1a',                // Subtle border
+    borderLight: '#333333',           // Lighter border for active states
+    textPrimary: '#e8e8e8',           // Soft white
+    textSecondary: '#8a8a8a',          // Muted gray
+    textTertiary: '#4a4a4a',           // Dark gray for labels
+    accent: '#c9a661',                // Warm ochre/sand (similar to Claude Code)
+    accentSubtle: '#8a7040',           // Desaturated accent
   };
 
   if (shareBtn) {
@@ -59,9 +58,8 @@
   async function generateShareCard() {
     const ctx = shareCanvas.getContext('2d');
     const dpr = window.devicePixelRatio || 2;
-    // Portrait ratio (540x960)
     const width = 540;
-    const height = 960;
+    const height = 920;
 
     shareCanvas.width = width * dpr;
     shareCanvas.height = height * dpr;
@@ -104,7 +102,6 @@
 
       const filteredDays = byDay.filter(d => new Date(d.date) >= startDate);
 
-      // 重新计算各模型的统计数据
       const modelMap = new Map();
       stats.byDayDetail.forEach(d => {
         if (new Date(d.date) >= startDate) {
@@ -145,220 +142,129 @@
   function drawShareCard(ctx, width, height, data) {
     let yPos = 60;
 
-    // ===== 顶部：核心数据 =====
-    // 品牌名（小）
+    // ===== 品牌 - 极简 =====
     ctx.fillStyle = COLORS.textTertiary;
-    ctx.font = '11px -apple-system, sans-serif';
+    ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('TOKEN VISUALIZER', 40, yPos);
-    yPos += 50;
+    ctx.fillText('TOKEN VISUALIZER', 50, yPos);
+    yPos += 70;
 
-    // 超大发光 Token 数字
+    // ===== Token 总量 - Serif 大标题 =====
     const tokenText = formatTokens(data.totalTokens);
     ctx.fillStyle = COLORS.textPrimary;
-    ctx.font = 'bold 56px -apple-system, sans-serif';
+    ctx.font = '48px Georgia, serif';  // 使用衬线体
     ctx.textAlign = 'center';
-
-    // 添加发光效果
-    ctx.shadowColor = COLORS.glow;
-    ctx.shadowBlur = 20;
     ctx.fillText(tokenText, width / 2, yPos);
-    ctx.shadowBlur = 0;
+    yPos += 18;
 
-    yPos += 25;
-
-    // "Total Tokens" 标签
+    // 极简标签
     ctx.fillStyle = COLORS.textSecondary;
-    ctx.font = '13px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.letterSpacing = '2px';
     ctx.fillText('TOTAL TOKENS', width / 2, yPos);
-    yPos += 15;
+    ctx.letterSpacing = '0';
+    yPos += 45;
 
-    // 右上角分享图标
-    drawShareIcon(ctx, width - 50, 60);
-
-    // 总金额显示
-    yPos += 30;
+    // ===== 总金额 =====
     const costText = `$${data.totalCost.toFixed(2)}`;
     ctx.fillStyle = COLORS.accent;
-    ctx.font = 'bold 32px -apple-system, sans-serif';
+    ctx.font = '32px Georgia, serif';
     ctx.textAlign = 'center';
     ctx.fillText(costText, width / 2, yPos);
+    yPos += 55;
 
-    ctx.fillStyle = COLORS.textSecondary;
-    ctx.font = '12px -apple-system, sans-serif';
-    ctx.fillText('Total Cost', width / 2, yPos + 20);
-
-    // ===== 中控：时间筛选 Tab =====
-    yPos += 70;
+    // ===== 时间筛选 - 下划线设计 =====
     const tabs = [
       { key: 'week', label: '近7日' },
       { key: 'month', label: '近30日' },
       { key: 'all', label: '全部' }
     ];
 
-    const tabWidth = 100;
-    const tabHeight = 36;
-    const tabSpacing = 12;
-    const tabsTotalWidth = tabs.length * tabWidth + (tabs.length - 1) * tabSpacing;
+    const tabSpacing = 35;
+    const tabsTotalWidth = tabs.length * 60 + (tabs.length - 1) * tabSpacing;
     let tabX = (width - tabsTotalWidth) / 2;
 
     tabs.forEach(tab => {
       const isActive = data.period === tab.key;
-
-      // 胶囊背景
-      if (isActive) {
-        // 发光效果
-        ctx.shadowColor = COLORS.glow;
-        ctx.shadowBlur = 15;
-
-        ctx.fillStyle = COLORS.accent;
-        roundRect(ctx, tabX, yPos, tabWidth, tabHeight, 18);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = '#0a0a0a';
-        ctx.font = '600 14px -apple-system, sans-serif';
-      } else {
-        ctx.fillStyle = COLORS.bgSecondary;
-        ctx.strokeStyle = COLORS.border;
-        ctx.lineWidth = 1;
-        roundRect(ctx, tabX, yPos, tabWidth, tabHeight, 18);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = COLORS.textTertiary;
-        ctx.font = '500 14px -apple-system, sans-serif';
-      }
+      const tabWidth = 60;
 
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(tab.label, tabX + tabWidth / 2, yPos + tabHeight / 2);
+      ctx.textBaseline = 'alphabetic';
+
+      if (isActive) {
+        // 下划线
+        ctx.fillStyle = COLORS.accent;
+        ctx.fillRect(tabX, yPos + 16, tabWidth, 1);
+
+        ctx.fillStyle = COLORS.textPrimary;
+        ctx.font = '500 12px -apple-system, sans-serif';
+      } else {
+        ctx.fillStyle = COLORS.textTertiary;
+        ctx.font = '400 12px -apple-system, sans-serif';
+      }
+
+      ctx.fillText(tab.label, tabX + tabWidth / 2, yPos + 12);
 
       tabX += tabWidth + tabSpacing;
     });
 
-    // ===== 底部：模型消耗榜单 =====
-    yPos += 60;
+    yPos += 55;
 
-    // 标题
-    ctx.fillStyle = COLORS.textTertiary;
-    ctx.font = '11px -apple-system, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText('模型消耗排行', 40, yPos);
-
-    yPos += 25;
-
+    // ===== 模型消耗榜单 - 极简列表 =====
     const maxCost = Math.max(...data.models.map(m => m.cost), 1);
 
     data.models.forEach((model, index) => {
-      const rowHeight = 52;
+      const rowHeight = 48;
       const yPosStart = yPos;
 
       // 左侧：模型名称
       ctx.fillStyle = COLORS.textPrimary;
-      ctx.font = '500 15px -apple-system, sans-serif';
+      ctx.font = '500 13px -apple-system, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
 
       const displayName = formatModelName(model.model);
-      ctx.fillText(displayName, 40, yPosStart + 20);
+      ctx.fillText(displayName, 50, yPosStart + 18);
 
-      // 中间：发光进度条
-      const barX = 40;
-      const barY = yPosStart + 30;
+      // 中间：极简进度条（细线）
+      const barX = 50;
+      const barY = yPosStart + 28;
       const barWidth = width - 160;
-      const barHeight = 6;
+      const barHeight = 1;
 
-      // 背景槽
-      ctx.fillStyle = COLORS.bgSecondary;
-      roundRect(ctx, barX, barY, barWidth, barHeight, 3);
-      ctx.fill();
+      // 背景线
+      ctx.fillStyle = COLORS.border;
+      ctx.fillRect(barX, barY, barWidth, barHeight);
 
-      // 进度（发光）
+      // 进度线
       const progress = model.cost / maxCost;
-      const progressWidth = barWidth * progress;
-
       if (progress > 0) {
-        // 发光
-        ctx.shadowColor = COLORS.glow;
-        ctx.shadowBlur = 10;
-
-        // 创建渐变
-        const gradient = ctx.createLinearGradient(barX, 0, barX + progressWidth, 0);
-        gradient.addColorStop(0, COLORS.accent);
-        gradient.addColorStop(1, COLORS.accentHover);
-
-        ctx.fillStyle = gradient;
-        roundRect(ctx, barX, barY, Math.max(progressWidth, barHeight), barHeight, 3);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
+        ctx.fillStyle = COLORS.accent;
+        ctx.fillRect(barX, barY, barWidth * progress, barHeight);
       }
 
-      // 右侧：金额
-      ctx.fillStyle = COLORS.accent;
-      ctx.font = '600 16px -apple-system, sans-serif';
+      // 右侧：金额（对齐）
+      ctx.fillStyle = COLORS.textSecondary;
+      ctx.font = '400 13px -apple-system, sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(`$${model.cost.toFixed(2)}`, width - 40, yPosStart + 20);
-
-      // Token 数量（小字）
-      ctx.fillStyle = COLORS.textTertiary;
-      ctx.font = '11px -apple-system, sans-serif';
-      ctx.fillText(formatTokens(model.tokens), width - 40, yPosStart + 36);
+      ctx.fillText(`$${model.cost.toFixed(2)}`, width - 50, yPosStart + 18);
 
       yPos += rowHeight;
     });
 
-    // 底部装饰
-    yPos += 20;
+    // ===== 底部 - 极简装饰 =====
+    yPos += 30;
+
+    // 分隔线
+    ctx.fillStyle = COLORS.border;
+    ctx.fillRect(50, yPos, width - 100, 1);
+    yPos += 25;
 
     // 活跃天数
-    ctx.fillStyle = COLORS.borderLight;
-    ctx.fillRect(40, yPos, width - 80, 1);
-
-    yPos += 30;
-    ctx.fillStyle = COLORS.textSecondary;
-    ctx.font = '12px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${data.activeDays} 活跃天数 · ${new Date().toLocaleDateString('zh-CN')}`, width / 2, yPos);
-  }
-
-  function roundRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-  }
-
-  function drawShareIcon(ctx, x, y) {
-    const size = 20;
-
-    ctx.save();
-    ctx.translate(x - size / 2, y - size / 2);
-
-    // 分享图标（简单的箭头+方块）
     ctx.fillStyle = COLORS.textTertiary;
-    ctx.fillRect(2, 8, 8, 8);
-    ctx.fillRect(10, 2, 8, 8);
-
-    ctx.fillStyle = COLORS.accent;
-    ctx.beginPath();
-    ctx.moveTo(14, 6);
-    ctx.lineTo(10, 10);
-    ctx.lineTo(14, 14);
-    ctx.fill();
-
-    ctx.restore();
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${data.activeDays} 活跃天数`, width / 2, yPos);
   }
 
   function formatTokens(tokens) {
