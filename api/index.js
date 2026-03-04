@@ -73,6 +73,24 @@ app.patch('/api/profile', authMiddleware, handleUpdateProfile);
 app.post('/api/groups/join', authMiddleware, handleJoinGroup);
 app.post('/api/groups/leave', authMiddleware, handleLeaveGroup);
 app.get('/api/groups', authMiddleware, handleGetUserGroups);
+app.get('/api/debug-date', async (req, res) => {
+  // Debug endpoint to check date calculations
+  const days = 7;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+
+  // Test SQLite date function
+  const { getDb } = await import('../packages/server/db/index.js');
+  const db = await getDb();
+  const sqliteDate = db.get("SELECT DATE('now') as today, DATE('now', '-7 days') as week_ago").get();
+
+  res.json({
+    local: { today: new Date().toISOString().split('T')[0], cutoff: cutoffDateStr },
+    sqlite: sqliteDate,
+    usage: 'Debug endpoint'
+  });
+});
 
 app.post('/api/key', (req, res) => {
   const apiKey = generateApiKey();
