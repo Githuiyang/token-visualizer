@@ -202,13 +202,16 @@
 
   <script src="/js/register.js"></script>
   <script>
-    // Reference toggle
-    document.getElementById('reference-toggle').addEventListener('click', () => {
-      const content = document.getElementById('reference-content');
-      const icon = document.querySelector('.toggle-icon');
-      content.classList.toggle('show');
-      icon.textContent = content.classList.contains('show') ? '▲' : '▼';
-    });
+    // Reference toggle - only if element exists
+    const refToggle = document.getElementById('reference-toggle');
+    if (refToggle) {
+      refToggle.addEventListener('click', () => {
+        const content = document.getElementById('reference-content');
+        const icon = document.querySelector('.toggle-icon');
+        content.classList.toggle('show');
+        icon.textContent = content.classList.contains('show') ? '▲' : '▼';
+      });
+    }
   </script>
 </body>
 </html>
