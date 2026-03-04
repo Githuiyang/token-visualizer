@@ -13,6 +13,7 @@ function checkLoginState() {
   const registerSection = document.getElementById('register-form');
   const loggedInSection = document.getElementById('logged-in-section');
   const userApiKeyDisplay = document.getElementById('user-api-key');
+  const referenceSection = document.getElementById('reference-section');
 
   if (apiKey) {
     // User is logged in
@@ -22,6 +23,11 @@ function checkLoginState() {
     loggedInSection.style.display = 'block';
     userApiKeyDisplay.textContent = apiKey;
 
+    // Hide CLI reference when logged in (already shown in upload section)
+    if (referenceSection) {
+      referenceSection.style.display = 'none';
+    }
+
     // Replace API key placeholders in code examples
     replaceApiKeyPlaceholders(apiKey);
   } else {
@@ -30,6 +36,11 @@ function checkLoginState() {
     userWelcome.style.display = 'none';
     registerSection.style.display = 'block';
     loggedInSection.style.display = 'none';
+
+    // Show CLI reference when not logged in
+    if (referenceSection) {
+      referenceSection.style.display = 'block';
+    }
 
     // Reset code examples to placeholder
     resetApiKeyPlaceholders();
