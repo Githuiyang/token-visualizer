@@ -49,6 +49,21 @@ export async function getDb() {
       needSchema = true;
     }
 
+    // Check if device column exists in usage_records (for databases created before device tracking)
+    try {
+      await dbInstance.execute('SELECT device FROM usage_records LIMIT 1');
+    } catch (e) {
+      console.log('Adding device column to usage_records...');
+      try {
+        await dbInstance.execute('ALTER TABLE usage_records ADD COLUMN device TEXT');
+      } catch (alterError) {
+        // Column might have been added concurrently
+        if (!alterError.message.includes('duplicate column')) {
+          console.warn('Warning adding device column:', alterError.message);
+        }
+      }
+    }
+
     if (needSchema) {
       const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
       // Split schema by semicolon to execute statement by statement
@@ -357,17 +372,25 @@ export async function getUserStats(userId) {
     ORDER BY date DESC, cost DESC
   `, [userId]);
 
-  const byDevice = await dbAll(`
-    SELECT
-      COALESCE(device, 'unknown') as device,
-      SUM(input_tokens + output_tokens + cached_tokens) as total_tokens,
-      SUM(cost) as cost,
-      COUNT(*) as requests
-    FROM usage_records
-    WHERE user_id = ?
-    GROUP BY device
-    ORDER BY cost DESC
-  `, [userId]);
+  // Try to get byDevice stats - gracefully handle if device column doesn't exist
+  let byDevice = [];
+  try {
+    byDevice = await dbAll(`
+      SELECT
+        COALESCE(device, 'unknown') as device,
+        SUM(input_tokens + output_tokens + cached_tokens) as total_tokens,
+        SUM(cost) as cost,
+        COUNT(*) as requests
+      FROM usage_records
+      WHERE user_id = ?
+      GROUP BY device
+      ORDER BY cost DESC
+    `, [userId]);
+  } catch (e) {
+    // Device column might not exist in older databases
+    console.debug('Device stats not available:', e.message);
+    byDevice = [];
+  }
 
   return { total, byModel, byDay, byDayDetail, byDevice };
 }
