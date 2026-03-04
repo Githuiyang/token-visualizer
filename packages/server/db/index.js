@@ -397,12 +397,14 @@ export async function getLeaderboard(sortBy = 'totalTokens', limit = 100, period
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
   // Build WHERE clause for period filtering
-  // Use datetime() with local time modifier to get correct date boundaries
+  // Calculate cutoff date in JavaScript to avoid timezone issues
   let periodWhere = '';
-  if (period === 'week') {
-    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-7 days', 'localtime')`;
-  } else if (period === 'month') {
-    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-30 days', 'localtime')`;
+  if (period !== 'all') {
+    const days = period === 'week' ? 7 : period === 'month' ? 30 : 0;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    periodWhere = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   }
 
   const rows = await dbAll(`
@@ -491,12 +493,14 @@ export async function getGroupLeaderboard(groupName, sortBy = 'totalTokens', per
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
   // Build WHERE clause for period filtering
-  // Use datetime() with local time modifier to get correct date boundaries
+  // Calculate cutoff date in JavaScript to avoid timezone issues
   let periodWhere = '';
-  if (period === 'week') {
-    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-7 days', 'localtime')`;
-  } else if (period === 'month') {
-    periodWhere = `AND datetime(ur.bucket_start) >= datetime('now', '-30 days', 'localtime')`;
+  if (period !== 'all') {
+    const days = period === 'week' ? 7 : period === 'month' ? 30 : 0;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    periodWhere = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   }
 
   const rows = await dbAll(`
