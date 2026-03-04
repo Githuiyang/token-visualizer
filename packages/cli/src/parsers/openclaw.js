@@ -2,7 +2,7 @@
  * OpenClaw parser
  * Reads from ~/.openclaw/agents/<agentId>/sessions/*.jsonl
  */
-import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { aggregateToBuckets } from './index.js';
@@ -35,9 +35,11 @@ function saveState(state) {
 
 function getFileHash(filePath) {
   try {
-    const stat = readFileSync(filePath, 'utf-8');
-    // Simple hash: just use length + last 100 chars
-    return `${stat.length}:${stat.slice(-100)}`;
+    const content = readFileSync(filePath, 'utf-8');
+    const stats = statSync(filePath);
+    // Use file size + mtime + last 100 chars as hash
+    // This ensures growing files are always detected as changed
+    return `${content.length}:${stats.mtimeMs}:${content.slice(-100)}`;
   } catch {
     return '';
   }
