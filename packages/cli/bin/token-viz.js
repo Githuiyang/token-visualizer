@@ -253,6 +253,74 @@ program
     }
   });
 
+// ============================================================================
+// DAEMON AUTO-START
+// ============================================================================
+
+/**
+ * Check if daemon is running by checking PID file
+ */
+function isDaemonRunning() {
+  try {
+    const pidFile = DAEMON_CONFIG.pidFile;
+    if (!existsSync(pidFile)) return false;
+
+    const pid = parseInt(readFileSync(pidFile, 'utf-8'));
+    // Check if process is alive
+    try {
+      process.kill(pid, 0); // Signal 0 doesn't kill, just checks existence
+      return true;
+    } catch {
+      return false; // Process is dead
+    }
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Ensure daemon is running - start it if not
+ */
+async function ensureDaemonRunning() {
+  if (isDaemonRunning()) {
+    return; // Already running
+  }
+
+  try {
+    // Spawn daemon in background
+    const { spawn } = await import('child_process');
+    const daemon = spawn(process.execPath, [
+      __filename,
+      '--daemon-run',
+      String(DAEMON_CONFIG.defaultInterval)
+    ], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true
+    });
+
+    // Write PID file
+    const pidFile = DAEMON_CONFIG.pidFile;
+    const pidDir = join(homedir(), '.token-visualizer');
+    if (!existsSync(pidDir)) {
+      const { mkdirSync } = await import('fs');
+      mkdirSync(pidDir, { recursive: true });
+    }
+    writeFileSync(pidFile, String(daemon.pid));
+
+    daemon.unref();
+
+    console.log(chalk.dim('💡 Auto-upload enabled (hourly)'));
+  } catch (error) {
+    // Silently fail - daemon is optional
+    console.debug('Could not start daemon:', error.message);
+  }
+}
+
+// ============================================================================
+// DAEMON AUTO-START END
+// ============================================================================
+
 // Push command
 program
   .command('push')
@@ -363,6 +431,9 @@ program
 
       console.log(chalk.green(`✓ ${result.message}`));
       console.log(chalk.dim(`\nView your dashboard: ${serverUrl}/dashboard\n`));
+
+      // Auto-start daemon if not running
+      await ensureDaemonRunning();
     } catch (error) {
       console.error(chalk.red(`Error: ${error.message}`));
       process.exit(1);
