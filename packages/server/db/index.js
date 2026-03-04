@@ -403,7 +403,11 @@ export async function getLeaderboard(sortBy = 'totalTokens', limit = 100, period
     const days = period === 'week' ? 7 : period === 'month' ? 30 : 0;
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    const cutoffDateStr = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Use local date format to match database storage
+    const year = cutoffDate.getFullYear();
+    const month = String(cutoffDate.getMonth() + 1).padStart(2, '0');
+    const day = String(cutoffDate.getDate()).padStart(2, '0');
+    const cutoffDateStr = `${year}-${month}-${day}`;
     periodWhere = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   }
 
@@ -499,7 +503,11 @@ export async function getGroupLeaderboard(groupName, sortBy = 'totalTokens', per
     const days = period === 'week' ? 7 : period === 'month' ? 30 : 0;
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    const cutoffDateStr = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Use local date format to match database storage
+    const year = cutoffDate.getFullYear();
+    const month = String(cutoffDate.getMonth() + 1).padStart(2, '0');
+    const day = String(cutoffDate.getDate()).padStart(2, '0');
+    const cutoffDateStr = `${year}-${month}-${day}`;
     periodWhere = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
   }
 
