@@ -6,20 +6,20 @@
 export { parse as parseClaudeCode } from './claude-code.js';
 export { parse as parseOpenclaw } from './openclaw.js';
 
-// Registry mapping
+// Registry mapping - each parser receives options parameter
 export const registry = {
-  'claude-code': async () => {
+  'claude-code': async (options = {}) => {
     const { parse } = await import('./claude-code.js');
-    return parse();
+    return parse(options);
   },
-  'openclaw': async () => {
+  'openclaw': async (options = {}) => {
     const { parse } = await import('./openclaw.js');
-    return parse();
+    return parse(options);
   },
-  'opencode': async () => {
+  'opencode': async (options = {}) => {
     try {
       const { parse } = await import('./opencode.js');
-      return parse();
+      return parse(options);
     } catch (error) {
       // opencode parser requires better-sqlite3, not included in npm package
       console.warn('OpenCode parser not available (requires better-sqlite3)');

@@ -67,14 +67,16 @@ function cleanProjectDir(raw) {
 
 /**
  * Parse Claude Code usage data
+ * @param {Object} options - Options
+ * @param {boolean} options.fullUpload - If true, ignore state and upload all data
  */
-export async function parse() {
+export async function parse(options = {}) {
+  const { fullUpload = false } = options;
+
   let sessions;
   try {
-    // Load all session data without file limit
-    // Using mode: 'display' to use pre-calculated costs
-    // No maxFiles limit to read all available sessions
-    sessions = await loadSessionData({ mode: 'display' }, { maxFiles: Infinity });
+    // Load all session data - ccusage has no built-in file limit when maxFiles is not specified
+    sessions = await loadSessionData({ mode: 'display' });
   } catch (error) {
     console.warn(`Could not load Claude Code data: ${error.message}`);
     return [];
@@ -82,8 +84,9 @@ export async function parse() {
 
   if (!sessions || sessions.length === 0) return [];
 
-  const state = loadState();
-  const nextState = { ...state };
+  // Skip state mechanism in fullUpload mode - upload all current data
+  const state = fullUpload ? {} : loadState();
+  const nextState = fullUpload ? {} : { ...state };
   const entries = [];
 
   for (const session of sessions) {
@@ -127,8 +130,10 @@ export async function parse() {
     }
   }
 
-  // Save state for next run
-  await saveState(nextState);
+  // Save state for next run (only in normal mode)
+  if (!fullUpload) {
+    await saveState(nextState);
+  }
 
   return aggregateToBuckets(entries);
 }

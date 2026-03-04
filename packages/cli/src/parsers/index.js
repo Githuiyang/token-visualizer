@@ -63,16 +63,18 @@ export function aggregateToBuckets(entries) {
 
 /**
  * Parse all enabled parsers and return aggregated buckets
- * Note: Individual parsers already aggregate their entries, so we just merge them
+ * @param {Array<string>} enabledParsers - List of parsers to run
+ * @param {Object} options - Options passed to parsers
+ * @param {boolean} options.fullUpload - If true, upload all data (ignore state)
  */
-export async function parseAll(enabledParsers = AVAILABLE_PARSERS) {
+export async function parseAll(enabledParsers = AVAILABLE_PARSERS, options = {}) {
   const parsers = await import('./parser-registry.js');
   const allBuckets = [];
 
   for (const name of enabledParsers) {
     if (parsers.registry[name]) {
       try {
-        const buckets = await parsers.registry[name]();
+        const buckets = await parsers.registry[name](options);
         allBuckets.push(...buckets);
       } catch (error) {
         console.warn(`Warning: Parser ${name} failed: ${error.message}`);

@@ -326,8 +326,8 @@ program
     }
 
     try {
-      // Parse data
-      const buckets = await parseAll();
+      // Parse data - pass fullUpload option when reindexing
+      const buckets = await parseAll(AVAILABLE_PARSERS, { fullUpload: !!options.reindex });
 
       if (buckets.length === 0) {
         console.warn(chalk.yellow('No usage data found.'));
