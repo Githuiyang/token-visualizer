@@ -9,6 +9,8 @@
   --accent-hover: #e8b86a;
   --border: #3a3a3a;
   --border-light: #1f1f1f;
+  --error: #e74c3c;
+  --success: #27ae60;
 }
 
 * {

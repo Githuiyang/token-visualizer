@@ -286,6 +286,66 @@ if (copyApiKeyBtn) {
 // Input validation
 const emailInput = document.getElementById('email');
 const nicknameInput = document.getElementById('nickname');
+let emailCheckTimeout = null;
+
+// Email auto-check for existing users
+if (emailInput) {
+  emailInput.addEventListener('input', () => {
+    const email = emailInput.value.trim();
+
+    // Clear previous timeout
+    if (emailCheckTimeout) {
+      clearTimeout(emailCheckTimeout);
+    }
+
+    // Basic validation
+    if (email && !email.includes('@')) {
+      emailInput.style.borderColor = 'var(--error)';
+      return;
+    } else {
+      emailInput.style.borderColor = '';
+    }
+
+    // Check email after user stops typing (debounce)
+    if (email && email.includes('@') && email.includes('.')) {
+      emailCheckTimeout = setTimeout(() => checkExistingEmail(email), 500);
+    }
+  });
+}
+
+// Check if email is already registered
+async function checkExistingEmail(email) {
+  try {
+    const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+
+    if (data.exists) {
+      // Auto-fill nickname
+      if (data.nickname && nicknameInput) {
+        nicknameInput.value = data.nickname;
+        // Show a hint that the account exists
+        const helpText = nicknameInput.parentElement.querySelector('.help-text');
+        if (helpText) {
+          helpText.textContent = 'Welcome back! Your account already exists';
+          helpText.style.color = 'var(--success)';
+          setTimeout(() => {
+            helpText.textContent = 'Shown on leaderboards (max 30 characters)';
+            helpText.style.color = '';
+          }, 3000);
+        }
+      }
+
+      // Auto-check leaderboard option if user had it enabled
+      if (data.show_on_leaderboard) {
+        const checkbox = document.getElementById('show-on-leaderboard');
+        if (checkbox) checkbox.checked = true;
+      }
+    }
+  } catch (err) {
+    // Silent fail - user can still register manually
+    console.error('Email check failed:', err);
+  }
+}
 
 if (emailInput) {
   emailInput.addEventListener('blur', () => {

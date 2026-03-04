@@ -12,6 +12,7 @@ import { handleRegister } from './api/register.js';
 import { handleLeaderboard } from './api/leaderboard.js';
 import { handleGetProfile, handleUpdateProfile } from './api/profile.js';
 import { handleJoinGroup, handleLeaveGroup, handleGetUserGroups } from './api/groups.js';
+import { handleCheckEmail } from './api/check-email.js';
 import { createUser, closeDb } from './db/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -86,6 +87,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.get('/api/check-email', handleCheckEmail);
 app.post('/api/push', authMiddleware, handlePush);
 app.get('/api/stats', authMiddleware, handleStats);
 app.post('/api/register', handleRegister);
