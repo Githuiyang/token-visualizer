@@ -397,18 +397,12 @@ export async function getLeaderboard(sortBy = 'totalTokens', limit = 100, period
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
   // Build WHERE clause for period filtering
-  // Calculate cutoff date in JavaScript to avoid timezone issues
+  // Use SQLite's date function with subquery to avoid timezone issues
   let periodWhere = '';
-  if (period !== 'all') {
-    const days = period === 'week' ? 7 : period === 'month' ? 30 : 0;
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    // Use local date format to match database storage
-    const year = cutoffDate.getFullYear();
-    const month = String(cutoffDate.getMonth() + 1).padStart(2, '0');
-    const day = String(cutoffDate.getDate()).padStart(2, '0');
-    const cutoffDateStr = `${year}-${month}-${day}`;
-    periodWhere = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
+  if (period === 'week') {
+    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-7 days'))`;
+  } else if (period === 'month') {
+    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-30 days'))`;
   }
 
   const rows = await dbAll(`
@@ -497,18 +491,11 @@ export async function getGroupLeaderboard(groupName, sortBy = 'totalTokens', per
   const sortColumn = sortBy === 'totalCost' ? 'total_cost' : 'total_tokens';
 
   // Build WHERE clause for period filtering
-  // Calculate cutoff date in JavaScript to avoid timezone issues
   let periodWhere = '';
-  if (period !== 'all') {
-    const days = period === 'week' ? 7 : period === 'month' ? 30 : 0;
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    // Use local date format to match database storage
-    const year = cutoffDate.getFullYear();
-    const month = String(cutoffDate.getMonth() + 1).padStart(2, '0');
-    const day = String(cutoffDate.getDate()).padStart(2, '0');
-    const cutoffDateStr = `${year}-${month}-${day}`;
-    periodWhere = `AND DATE(ur.bucket_start) >= '${cutoffDateStr}'`;
+  if (period === 'week') {
+    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-7 days'))`;
+  } else if (period === 'month') {
+    periodWhere = `AND DATE(ur.bucket_start) >= (SELECT DATE('now', '-30 days'))`;
   }
 
   const rows = await dbAll(`
