@@ -4,16 +4,15 @@
 
 // Common proxy ports used by various proxy software
 const COMMON_PORTS = [
-  7890,    // Clash / Surge
-  7891,    //
-  1087,    // Clash
+  7890,    // Clash
+  7891,    // Clash
+  1087,    // Shadowsocks
   7892,    // Clash
-  10808,   //
-  8888,    // Surge (yours!)
-  10809,
+  10808,   // V2Ray
+  10809,   // V2Ray
   7893,    //
   1086,    //
-  10888,
+  10888,   //
   8080,    // Fiddler
   8118,    // Charles Proxy
 ];
@@ -180,10 +179,10 @@ export async function setupProxy() {
     // No proxy found - give helpful hints
     console.log('\\n📡 Network: No proxy detected. If you need a proxy:\\n');
     console.log('  Option 1: Set environment variable');
-    console.log('    HTTPS_PROXY=http://127.0.0.1:8888 token-viz push\\n');
+    console.log('    HTTPS_PROXY=http://127.0.0.1:<port> token-viz push\\n');
     console.log('  Option 2: Pass --proxy option');
-    console.log('    token-viz push --proxy http://127.0.0.1:8888\\n');
-    console.log('  Common proxy ports: 7890 (Clash), 7891, 1087, 8888 (Surge)\\n');
+    console.log('    token-viz push --proxy http://127.0.0.1:<port>\\n');
+    console.log('  Common proxy ports: 7890 (Clash), 10808 (V2Ray), 7891\\n');
     return false;
   }
 
@@ -203,7 +202,7 @@ export async function setupProxy() {
     return true;
   } catch (e) {
     console.warn(`⚠️  Proxy setup failed: ${e.message}`);
-    console.log('  Try: HTTPS_PROXY=http://127.0.0.1:8888 token-viz push\\n');
+    console.log('  Try: HTTPS_PROXY=http://127.0.0.1:<port> token-viz push\\n');
     return false;
   }
 }
