@@ -7,9 +7,21 @@ const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
 
 export function loadConfig() {
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, 'utf-8'));
+    const config = JSON.parse(readFileSync(CONFIG_PATH, 'utf-8'));
+    return {
+      // ...existing config
+      ...config,
+      // New profile-related options with defaults
+      githubToken: process.env.GITHUB_TOKEN || config.githubToken || null,
+      analyzeConversations: config.analyzeConversations || false,
+      includeGitHubStats: config.includeGitHubStats || false,
+    };
   } catch {
-    return {};
+    return {
+      githubToken: process.env.GITHUB_TOKEN || null,
+      analyzeConversations: false,
+      includeGitHubStats: false,
+    };
   }
 }
 
