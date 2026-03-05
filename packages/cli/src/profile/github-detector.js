@@ -24,6 +24,15 @@ export function parseGitHubUrl(url) {
   // github:owner/repo
   // owner/repo
   
+  // Handle github:owner/repo format first
+  if (url.startsWith('github:')) {
+    const fullName = url.substring(7);
+    const [owner, repo] = fullName.split('/');
+    if (owner && repo) {
+      return { fullName, owner, repo };
+    }
+  }
+  
   const patterns = [
     /github\.com[\/:]([^\/\s]+\/[^\/\s\.]+)/,
     /^([a-zA-Z0-9-]+\/[a-zA-Z0-9-_.]+)$/,
