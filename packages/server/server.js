@@ -11,6 +11,12 @@ import { handleStats } from './api/stats.js';
 import { handleRegister } from './api/register.js';
 import { handleLeaderboard } from './api/leaderboard.js';
 import { handleGetProfile, handleUpdateProfile } from './api/profile.js';
+import {
+  handleUploadTokenProfile,
+  handleGetTokenProfile,
+  handleGetPublicTokenProfile,
+  handleUpdateTokenProfile
+} from './api/token-profile.js';
 import { handleJoinGroup, handleLeaveGroup, handleGetUserGroups } from './api/groups.js';
 import { handleCheckEmail } from './api/check-email.js';
 import { createUser, closeDb } from './db/index.js';
@@ -94,6 +100,11 @@ app.post('/api/register', handleRegister);
 app.get('/api/leaderboard', handleLeaderboard);
 app.get('/api/profile', authMiddleware, handleGetProfile);
 app.patch('/api/profile', authMiddleware, handleUpdateProfile);
+// Token profile routes
+app.post('/api/token-profile', authMiddleware, handleUploadTokenProfile);
+app.get('/api/token-profile', authMiddleware, handleGetTokenProfile);
+app.put('/api/token-profile', authMiddleware, handleUpdateTokenProfile);
+app.get('/api/token-profile/:profileId', handleGetPublicTokenProfile);
 app.post('/api/groups/join', authMiddleware, handleJoinGroup);
 app.post('/api/groups/leave', authMiddleware, handleLeaveGroup);
 app.get('/api/groups', authMiddleware, handleGetUserGroups);

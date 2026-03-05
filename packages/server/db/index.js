@@ -57,11 +57,18 @@ export async function getDb() {
       try {
         await dbInstance.execute('ALTER TABLE usage_records ADD COLUMN device TEXT');
       } catch (alterError) {
-        // Column might have been added concurrently
         if (!alterError.message.includes('duplicate column')) {
           console.warn('Warning adding device column:', alterError.message);
         }
       }
+    }
+
+    // Check if token_profiles table exists
+    try {
+      await dbInstance.execute('SELECT 1 FROM token_profiles LIMIT 1');
+    } catch (e) {
+      console.log('Creating token_profiles table...');
+      needSchema = true;
     }
 
     if (needSchema) {

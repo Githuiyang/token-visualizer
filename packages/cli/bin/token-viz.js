@@ -633,6 +633,96 @@ function formatChars(chars) {
   return `${chars} chars`;
 }
 
+// Profile command - generate user profile
+program
+  .command('profile')
+  .description('Generate user profile from token usage data')
+  .option('-o, --output <path>', 'Output file path', 'profile.json')
+  .option('--upload', 'Upload profile to server after generation')
+  .option('-s, --server <url>', 'Server URL')
+  .action(async (options) => {
+    console.log(chalk.cyan('Token Visualizer - Profile Generator\n'));
+
+    try {
+      const { generateProfile, saveProfile } = await import('../src/profile/generator.js');
+      
+      console.log(chalk.dim('Analyzing token usage data...'));
+      const profile = await generateProfile();
+
+      if (profile.error) {
+        console.error(chalk.red(profile.error));
+        process.exit(1);
+      }
+
+      // Save to file
+      const outputPath = join(homedir(), '.token-visualizer', options.output);
+      const fs = await import('node:fs');
+      const dir = dirname(outputPath);
+      await fs.promises.mkdir(dir, { recursive: true });
+      await fs.promises.writeFile(outputPath, JSON.stringify(profile, null, 2));
+
+      console.log(chalk.green(`\n✓ Profile generated: ${outputPath}\n`));
+
+      // Print summary
+      console.log(chalk.bold('Profile Summary:'));
+      console.log(`  Period: ${profile.period.start} ~ ${profile.period.end} (${profile.period.days} days)`);
+      console.log(`  Total Tokens: ${chalk.cyan(formatTokens(profile.stats.totalTokens))}`);
+      console.log(`  Total Cost: ${chalk.cyan(`$${profile.stats.totalCost}`)}`);
+      console.log(`  User Input: ${chalk.cyan(formatChars(profile.stats.userChars))}`);
+      console.log(`  Active Days: ${profile.stats.activeDays}`);
+      console.log(`  Avg Daily: ${formatTokens(profile.stats.avgDailyTokens)} ($${profile.stats.avgDailyCost})`);
+
+      console.log(chalk.bold('\nTop Models:'));
+      profile.modelUsage.slice(0, 5).forEach((m, i) => {
+        console.log(`  ${i + 1}. ${chalk.cyan(m.displayName.padEnd(20))} ${formatTokens(m.tokens).padStart(10)} (${m.percent}%)`);
+      });
+
+      console.log(chalk.bold('\nTop Projects:'));
+      profile.projects.slice(0, 5).forEach((p, i) => {
+        console.log(`  ${i + 1}. ${chalk.cyan(p.name.padEnd(20))} ${formatTokens(p.tokens).padStart(10)} (${p.percent}%)`);
+      });
+
+      if (profile.inferredTags.length > 0) {
+        console.log(chalk.bold('\nInferred Tags:'));
+        console.log(`  ${profile.inferredTags.map(t => chalk.cyan(`#${t}`)).join(' ')}`);
+      }
+
+      // Upload if requested
+      if (options.upload) {
+        const config = loadConfig();
+        const serverUrl = options.server || config.serverUrl || 'http://localhost:3000';
+        const apiKey = config.apiKey;
+
+        if (!apiKey) {
+          console.error(chalk.red('\nAPI key required for upload. Run: token-viz config --set-key <key>'));
+          process.exit(1);
+        }
+
+        console.log(chalk.dim('\nUploading profile...'));
+        
+        const response = await fetch(`${serverUrl}/api/profile`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': apiKey
+          },
+          body: JSON.stringify(profile)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Upload failed');
+        }
+
+        console.log(chalk.green(`\n✓ Profile uploaded: ${serverUrl}/profile/${result.profileId}`));
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error: ${error.message}`));
+      process.exit(1);
+    }
+  });
+
 // Dash command - open dashboard in browser
 program
   .command('dash')
