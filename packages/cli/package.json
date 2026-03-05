@@ -1,6 +1,6 @@
 {
   "name": "token-viz-cli",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "AI token usage visualization tool with GitHub-style theme",
   "type": "module",
   "main": "src/index.js",

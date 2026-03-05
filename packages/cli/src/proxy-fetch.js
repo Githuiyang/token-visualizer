@@ -4,17 +4,18 @@
 
 // Common proxy ports used by various proxy software
 const COMMON_PORTS = [
-  7890,    // Clash
-  7891,    // Clash
-  1087,    // Shadowsocks
-  7892,    // Clash
-  10808,   // V2Ray
-  10809,   // V2Ray
-  7893,    //
-  1086,    //
-  10888,   //
-  8080,    // Fiddler
-  8118,    // Charles Proxy
+  // Clash ports
+  7890, 7891, 7892, 7893,
+  // V2Ray / Xray ports
+  10808, 10809, 10808,
+  // Shadowsocks ports
+  1080, 1081, 1082, 1083, 1084, 1085, 1086, 1087, 1088, 1089,
+  // Surge ports
+  8888, 8889, 8890,
+  // Other common ports
+  8080, 8118, 10888,
+  // Loon / Quantumult X
+  10809,
 ];
 
 // Track the first working proxy we found (to avoid redundant testing)
@@ -182,7 +183,8 @@ export async function setupProxy() {
     console.log('    HTTPS_PROXY=http://127.0.0.1:<port> token-viz push\\n');
     console.log('  Option 2: Pass --proxy option');
     console.log('    token-viz push --proxy http://127.0.0.1:<port>\\n');
-    console.log('  Common proxy ports: 7890 (Clash), 10808 (V2Ray), 7891\\n');
+    console.log('  Auto-detected ports: 7890-7893 (Clash), 10808-10809 (V2Ray),');
+    console.log('                      1080-1089 (Shadowsocks), 8888-8890 (Surge)\\n');
     return false;
   }
 
