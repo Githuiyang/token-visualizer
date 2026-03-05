@@ -70,16 +70,31 @@ export function aggregateToBuckets(entries) {
  * @param {Array<string>} enabledParsers - List of parsers to run
  * @param {Object} options - Options passed to parsers
  * @param {boolean} options.fullUpload - If true, upload all data (ignore state)
+ * @returns {Object} { buckets: array, userCharsStats: object }
  */
 export async function parseAll(enabledParsers = AVAILABLE_PARSERS, options = {}) {
   const parsers = await import('./parser-registry.js');
   const allBuckets = [];
+  const userCharsStats = {};
 
   for (const name of enabledParsers) {
     if (parsers.registry[name]) {
       try {
-        const buckets = await parsers.registry[name](options);
-        allBuckets.push(...buckets);
+        const result = await parsers.registry[name](options);
+        
+        // Handle both old format (array) and new format (object with buckets + userCharsStats)
+        if (Array.isArray(result)) {
+          allBuckets.push(...result);
+        } else if (result.buckets) {
+          allBuckets.push(...result.buckets);
+          
+          // Aggregate user chars stats
+          if (result.userCharsStats) {
+            for (const [project, chars] of Object.entries(result.userCharsStats)) {
+              userCharsStats[project] = (userCharsStats[project] || 0) + chars;
+            }
+          }
+        }
       } catch (error) {
         console.warn(`Warning: Parser ${name} failed: ${error.message}`);
       }
@@ -88,6 +103,5 @@ export async function parseAll(enabledParsers = AVAILABLE_PARSERS, options = {})
     }
   }
 
-  // Buckets are already aggregated, just return them
-  return allBuckets;
+  return { buckets: allBuckets, userCharsStats };
 }

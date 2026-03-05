@@ -197,7 +197,7 @@ program
   .action(async (options) => {
     console.log(chalk.cyan('Token Visualizer - Usage Statistics\n'));
 
-    const buckets = await parseAll();
+    const { buckets, userCharsStats } = await parseAll();
 
     if (buckets.length === 0) {
       console.warn(chalk.yellow('No usage data found.'));
@@ -227,6 +227,18 @@ program
       const percent = ((m.cost / stats.totalCost) * 100).toFixed(1);
       console.log(`  ${i + 1}. ${chalk.cyan(m.displayName.padEnd(25))} ${formatTokens(m.totalTokens).padStart(10)} · $${m.cost.toFixed(4).padStart(8)} (${percent}%)`);
     });
+
+    // Show user input character stats
+    if (userCharsStats && Object.keys(userCharsStats).length > 0) {
+      console.log(chalk.bold('\nUser Input Characters:'));
+      const sortedProjects = Object.entries(userCharsStats).sort((a, b) => b[1] - a[1]);
+      let totalChars = 0;
+      for (const [project, chars] of sortedProjects) {
+        console.log(`  ${chalk.cyan(project.padEnd(25))} ${formatChars(chars)}`);
+        totalChars += chars;
+      }
+      console.log(chalk.dim(`  ${'Total'.padEnd(25)} ${formatChars(totalChars)}`));
+    }
   });
 
 // Status command - comprehensive status check (combined state, sources, verify)
@@ -613,6 +625,12 @@ function formatTokens(tokens) {
   if (tokens >= 1_000_000) return `${(tokens / 1_000_000).toFixed(1)}M`;
   if (tokens >= 1_000) return `${(tokens / 1_000).toFixed(1)}K`;
   return tokens.toString();
+}
+
+function formatChars(chars) {
+  if (chars >= 1_000_000) return `${(chars / 1_000_000).toFixed(1)}M chars`;
+  if (chars >= 1_000) return `${(chars / 1_000).toFixed(1)}K chars`;
+  return `${chars} chars`;
 }
 
 // Dash command - open dashboard in browser
