@@ -88,6 +88,12 @@ app.get('/leaderboard', (req, res) => {
   res.render('leaderboard');
 });
 
+// Profile page - public view
+app.get('/profile/:profileId', async (req, res) => {
+  const { profileId } = req.params;
+  res.render('profile', { profileId });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });

@@ -256,7 +256,7 @@ export async function insertUsageRecords(userId, records) {
 
       return {
         sql: `
-        INSERT INTO usage_records
+        INSERT OR IGNORE INTO usage_records
         (user_id, model, project, input_tokens, output_tokens, cached_tokens, cost, bucket_start, source, device)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
@@ -278,7 +278,7 @@ export async function insertUsageRecords(userId, records) {
   } else {
     // better-sqlite3 transaction
     const stmt = db.prepare(`
-      INSERT INTO usage_records
+      INSERT OR IGNORE INTO usage_records
       (user_id, model, project, input_tokens, output_tokens, cached_tokens, cost, bucket_start, source, device)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);

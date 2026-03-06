@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS usage_records (
   cost REAL DEFAULT 0,
   bucket_start DATETIME NOT NULL,
   source TEXT NOT NULL,
-  device TEXT,
+  device TEXT DEFAULT 'unknown',
+  device_key TEXT GENERATED ALWAYS AS (COALESCE(device, 'unknown')) STORED,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -67,3 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_token_profiles_user
 
 CREATE INDEX IF NOT EXISTS idx_token_profiles_public
   ON token_profiles(is_public, updated_at);
+
+-- Unique index for deduplication
+CREATE UNIQUE INDEX IF NOT EXISTS idx_usage_unique
+  ON usage_records(user_id, source, model, project, bucket_start, device_key);

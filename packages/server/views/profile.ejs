@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Token Visualizer</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/profile.css">
+  <!-- ECharts Library (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      Token Visualizer
+    </div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/leaderboard">Leaderboard</a>
+      <button class="nav-btn" id="lang-toggle" title="Language">EN</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Profile Header -->
+    <header class="profile-header">
+      <div class="profile-info">
+        <h1 id="profile-nickname">Loading...</h1>
+        <div class="profile-meta">
+          <span class="meta-item" id="time-range">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 6v6l4 2"></path>
+            </svg>
+            <span>--</span>
+          </span>
+          <span class="meta-item" id="total-cost-display">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span>--</span>
+          </span>
+          <span class="meta-item privacy-badge" id="privacy-status">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>Private</span>
+          </span>
+        </div>
+      </div>
+      <button class="share-btn" id="copy-link-btn" title="Copy Profile Link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value" id="stat-total-tokens">--</span>
+          <span class="stat-label">Total Tokens</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value" id="stat-user-input">--</span>
+          <span class="stat-label">User Input</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value" id="stat-active-days">--</span>
+          <span class="stat-label">Active Days</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            <polyline points="17 6 23 6 23 12"></polyline>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value" id="stat-avg-daily">--</span>
+          <span class="stat-label">Avg Daily</span>
+        </div>
+      </div>
+    </div>
+
+    <main class="profile-main">
+      <!-- Model Usage Pie Chart -->
+      <section class="chart-section">
+        <h2>Model Usage</h2>
+        <div id="model-pie-chart" class="chart"></div>
+        <div id="model-list" class="model-list"></div>
+      </section>
+
+      <!-- Top Projects -->
+      <section class="chart-section">
+        <h2>Top Projects</h2>
+        <div class="projects-table-container">
+          <table class="projects-table" id="projects-table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Tokens</th>
+                <th>Cost</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="loading-text">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Activity Heatmap -->
+      <section class="chart-section full-width">
+        <h2>Activity Heatmap</h2>
+        <div id="activity-heatmap" class="chart heatmap"></div>
+      </section>
+
+      <!-- Inferred Tags -->
+      <section class="chart-section full-width">
+        <h2>Inferred Tags</h2>
+        <div class="tags-container" id="tags-container">
+          <span class="loading-text">Loading...</span>
+        </div>
+      </section>
+
+      <!-- Privacy Controls (shown only if owner) -->
+      <section class="chart-section full-width privacy-controls" id="privacy-controls" style="display: none;">
+        <h2>Privacy Controls</h2>
+        
+        <div class="privacy-section">
+          <h3>Project Aliases</h3>
+          <p class="section-help">Set custom names for your projects before sharing</p>
+          <div id="project-aliases" class="project-aliases">
+            <!-- Dynamic content -->
+          </div>
+        </div>
+
+        <div class="privacy-section">
+          <h3>Visibility</h3>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="toggle-public">
+              <span>Make profile public</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="share-actions">
+          <button class="btn-primary" id="save-privacy">Save Changes</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" style="display: none;">
+    <span id="toast-message"></span>
+  </div>
+
+  <style>
+    /* Profile-specific styles */
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    .profile-info h1 {
+      font-size: 2rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .profile-meta {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .meta-item svg {
+      color: var(--text-tertiary);
+    }
+
+    .privacy-badge {
+      padding: 0.25rem 0.75rem;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+
+    .privacy-badge.public {
+      background: rgba(212, 160, 86, 0.1);
+      color: var(--accent);
+    }
+
+    .share-btn {
+      padding: 0.75rem 1rem;
+      background: var(--accent);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .share-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 8px;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .stat-icon {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Projects Table */
+    .projects-table-container {
+      overflow-x: auto;
+    }
+
+    .projects-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .projects-table th,
+    .projects-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .projects-table th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+
+    .projects-table td {
+      font-size: 0.875rem;
+      color: var(--text-primary);
+    }
+
+    .projects-table tr:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .loading-text {
+      text-align: center;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    /* Tags */
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+
+    .tag:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Privacy Controls */
+    .privacy-controls {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 8px;
+    }
+
+    .privacy-section {
+      margin-bottom: 2rem;
+    }
+
+    .privacy-section:last-of-type {
+      margin-bottom: 1.5rem;
+    }
+
+    .privacy-section h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .project-aliases {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .project-alias-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .project-alias-item label {
+      min-width: 120px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .project-alias-item input[type="text"] {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .project-alias-item input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .share-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Profile Main */
+    .profile-main {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .profile-main {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+    }
+  </style>
+
+  <script>
+    // Profile page logic
+    (function() {
+      const profileId = window.location.pathname.split('/').pop();
+      let profileData = null;
+      let isOwner = false;
+
+      // Format numbers
+      function formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toString();
+      }
+
+      // Format cost
+      function formatCost(cost) {
+        return '$' + cost.toFixed(2);
+      }
+
+      // Show toast notification
+      function showToast(message) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        toastMessage.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 3000);
+      }
+
+      // Load profile data
+      async function loadProfile() {
+        try {
+          const response = await fetch(`/api/token-profile/${profileId}`);
+          if (!response.ok) {
+            throw new Error('Profile not found');
+          }
+
+          profileData = await response.json();
+          isOwner = profileData.isOwner || false;
+
+          renderProfile();
+        } catch (error) {
+          console.error('Failed to load profile:', error);
+          document.getElementById('profile-nickname').textContent = 'Profile Not Found';
+        }
+      }
+
+      // Render profile
+      function renderProfile() {
+        // Header
+        document.getElementById('profile-nickname').textContent = 
+          profileData.owner?.nickname || 'Anonymous';
+
+        // Time range
+        const stats = profileData.stats || {};
+        const timeRange = `${stats.startDate || '--'} ~ ${stats.endDate || '--'}`;
+        document.querySelector('#time-range span').textContent = timeRange;
+
+        // Total cost
+        const totalCost = stats.totalCost || 0;
+        document.querySelector('#total-cost-display span').textContent = formatCost(totalCost);
+
+        // Privacy status
+        const isPublic = profileData.isPublic || false;
+        const privacyBadge = document.getElementById('privacy-status');
+        privacyBadge.querySelector('span').textContent = isPublic ? 'Public' : 'Private';
+        privacyBadge.classList.toggle('public', isPublic);
+
+        // Stats cards
+        document.getElementById('stat-total-tokens').textContent = 
+          formatNumber(stats.totalTokens || 0);
+        document.getElementById('stat-user-input').textContent = 
+          formatNumber(stats.userInputChars || 0) + ' chars';
+        document.getElementById('stat-active-days').textContent = 
+          `${stats.activeDays || 0}/${stats.totalDays || 0}`;
+        document.getElementById('stat-avg-daily').textContent = 
+          formatNumber(stats.avgDailyTokens || 0) + ' tokens';
+
+        // Model usage pie chart
+        renderModelPieChart(stats.modelUsage || {});
+
+        // Top projects
+        renderProjects(profileData.projects || []);
+
+        // Activity heatmap
+        renderHeatmap(stats.activityData || []);
+
+        // Inferred tags
+        renderTags(stats.inferredTags || []);
+
+        // Privacy controls (if owner)
+        if (isOwner) {
+          document.getElementById('privacy-controls').style.display = 'block';
+          renderPrivacyControls();
+        }
+      }
+
+      // Render model usage pie chart
+      function renderModelPieChart(modelUsage) {
+        const chartDom = document.getElementById('model-pie-chart');
+        const myChart = echarts.init(chartDom);
+
+        const data = Object.entries(modelUsage).map(([name, value]) => ({
+          name,
+          value
+        }));
+
+        const option = {
+          backgroundColor: 'transparent',
+          tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)'
+          },
+          series: [{
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#0a0a0a',
+              borderWidth: 2
+            },
+            label: {
+              show: false,
+              position: 'center'
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 20,
+                fontWeight: 'bold',
+                color: '#f5f5f5'
+              }
+            },
+            labelLine: {
+              show: false
+            },
+            data: data
+          }],
+          color: ['#d4a056', '#8b7355', '#6b5b4f', '#5a4a3f']
+        };
+
+        myChart.setOption(option);
+
+        // Model list
+        const modelList = document.getElementById('model-list');
+        const total = data.reduce((sum, item) => sum + item.value, 0);
+        modelList.innerHTML = data.map(item => `
+          <div class="model-item">
+            <span class="model-name">${item.name}</span>
+            <span class="model-percent">${((item.value / total) * 100).toFixed(1)}%</span>
+          </div>
+        `).join('');
+      }
+
+      // Render projects table
+      function renderProjects(projects) {
+        const tbody = document.querySelector('#projects-table tbody');
+        const totalTokens = projects.reduce((sum, p) => sum + (p.tokens || 0), 0);
+
+        if (projects.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="loading-text">No projects found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = projects.map(project => {
+          const percentage = ((project.tokens / totalTokens) * 100).toFixed(1);
+          const displayName = project.alias || project.name;
+          return `
+            <tr>
+              <td>${displayName}</td>
+              <td>${formatNumber(project.tokens || 0)}</td>
+              <td>${formatCost(project.cost || 0)}</td>
+              <td>${percentage}%</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Render activity heatmap
+      function renderHeatmap(activityData) {
+        const chartDom = document.getElementById('activity-heatmap');
+        const myChart = echarts.init(chartDom);
+
+        // Prepare data for last 7 days
+        const days = activityData.slice(-7).map((item, index) => [
+          index,
+          0,
+          item.tokens || 0
+        ]);
+
+        const hours = Array.from({length: 24}, (_, i) => i + ':00');
+
+        const option = {
+          backgroundColor: 'transparent',
+          tooltip: {
+            position: 'top',
+            formatter: function(params) {
+              return `Tokens: ${formatNumber(params.value[2])}`;
+            }
+          },
+          grid: {
+            top: 20,
+            bottom: 60,
+            left: 80,
+            right: 20
+          },
+          xAxis: {
+            type: 'category',
+            data: ['7d ago', '6d ago', '5d ago', '4d ago', '3d ago', '2d ago', '1d ago'],
+            splitArea: { show: true },
+            axisLabel: { color: '#6a6a6a' },
+            axisLine: { lineStyle: { color: '#3a3a3a' } }
+          },
+          yAxis: {
+            type: 'category',
+            data: hours.filter((_, i) => i % 6 === 0),
+            splitArea: { show: true },
+            axisLabel: { color: '#6a6a6a' },
+            axisLine: { lineStyle: { color: '#3a3a3a' } }
+          },
+          visualMap: {
+            min: 0,
+            max: Math.max(...activityData.map(d => d.tokens || 0)),
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            bottom: 0,
+            inRange: {
+              color: ['#1a1a1a', '#3a3a3a', '#d4a056']
+            },
+            textStyle: { color: '#6a6a6a' }
+          },
+          series: [{
+            name: 'Activity',
+            type: 'heatmap',
+            data: days,
+            label: { show: false },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }]
+        };
+
+        myChart.setOption(option);
+      }
+
+      // Render tags
+      function renderTags(tags) {
+        const container = document.getElementById('tags-container');
+        
+        if (tags.length === 0) {
+          container.innerHTML = '<span class="loading-text">No tags available</span>';
+          return;
+        }
+
+        container.innerHTML = tags.map(tag => 
+          `<span class="tag">#${tag}</span>`
+        ).join('');
+      }
+
+      // Render privacy controls
+      function renderPrivacyControls() {
+        const projects = profileData.projects || [];
+        const aliasesContainer = document.getElementById('project-aliases');
+
+        aliasesContainer.innerHTML = projects.map(project => `
+          <div class="project-alias-item">
+            <label>${project.name}</label>
+            <input type="text" 
+                   data-project="${project.name}" 
+                   value="${project.alias || ''}" 
+                   placeholder="Public display name">
+          </div>
+        `).join('');
+
+        // Set public toggle
+        document.getElementById('toggle-public').checked = profileData.isPublic || false;
+      }
+
+      // Copy link button
+      document.getElementById('copy-link-btn').addEventListener('click', () => {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Profile link copied!');
+        });
+      });
+
+      // Save privacy settings
+      document.getElementById('save-privacy')?.addEventListener('click', async () => {
+        const isPublic = document.getElementById('toggle-public').checked;
+        const aliasInputs = document.querySelectorAll('.project-alias-item input');
+        
+        const projects = Array.from(aliasInputs).map(input => ({
+          name: input.dataset.project,
+          alias: input.value
+        }));
+
+        try {
+          const response = await fetch('/api/token-profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isPublic, projects })
+          });
+
+          if (response.ok) {
+            showToast('Privacy settings saved!');
+            location.reload();
+          } else {
+            showToast('Failed to save settings');
+          }
+        } catch (error) {
+          console.error('Save error:', error);
+          showToast('Failed to save settings');
+        }
+      });
+
+      // Initialize
+      loadProfile();
+
+      // Resize charts on window resize
+      window.addEventListener('resize', () => {
+        echarts.getInstanceByDom(document.getElementById('model-pie-chart'))?.resize();
+        echarts.getInstanceByDom(document.getElementById('activity-heatmap'))?.resize();
+      });
+    })();
+  </script>
+</body>
+</html>
